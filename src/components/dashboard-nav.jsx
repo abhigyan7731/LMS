@@ -9,8 +9,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Overview' },
-  { href: '/dashboard/teacher/courses', label: 'My Courses', teacherOnly: true },
-  { href: '/dashboard/students', label: 'Students', teacherOnly: true },
+  { href: '/teacher', label: 'Teacher Portal', teacherOnly: true },
   { href: '/courses', label: 'Browse Courses' },
 ];
 
