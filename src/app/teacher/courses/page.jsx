@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import Link from 'next/link';
 import { Plus, BookOpen, Video, Users, Edit3, Eye, Globe, Lock } from 'lucide-react';
 

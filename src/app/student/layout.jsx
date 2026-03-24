@@ -1,32 +1,29 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 
 export const metadata = {
-    title: "Student Management – LearnHub",
-    description: 'View all students, their enrollments and progress',
+    title: "Student Dashboard – LearnHub",
+    description: 'View your enrolled courses, track progress, and learn',
 };
 
-const DEAN_EMAIL = 'abhigyankumar268@gmail.com';
-
-export default async function StudentPortalLayout({ children }) {
+export default async function StudentLayout({ children }) {
     const { userId } = await auth();
     if (!userId) redirect('/sign-in');
+    const DEAN_EMAIL = 'abhigyankumar268@gmail.com';
 
     const supabase = createAdminClient();
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role, email')
         .eq('clerk_user_id', userId)
         .single();
 
-    if (!profile) redirect('/onboarding');
+    if (profileError || !profile) redirect('/onboarding');
 
-    // Allow: admin (dean email) or teacher role
-    const isAdmin = profile.email === DEAN_EMAIL;
-    const isTeacher = profile.role === 'teacher';
-
-    if (!isAdmin && !isTeacher) redirect('/');
+    // Students and dean admin can access this route
+    const isDean = profile.email === DEAN_EMAIL;
+    if (!isDean && profile.role !== 'student') redirect('/dashboard');
 
     return <>{children}</>;
 }

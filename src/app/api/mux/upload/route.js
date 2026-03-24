@@ -1,12 +1,21 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import Mux from '@mux/mux-node'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/admin-cjs'
 
-const mux = new Mux(process.env.MUX_TOKEN_ID, process.env.MUX_TOKEN_SECRET)
+const tokenId = process.env.MUX_TOKEN_ID
+const tokenSecret = process.env.MUX_TOKEN_SECRET
+const mux = tokenId && tokenSecret ? new Mux(tokenId, tokenSecret) : null
 
 export async function POST(request) {
   try {
+    if (!mux) {
+      return NextResponse.json(
+        { error: 'Mux credentials missing. Add MUX_TOKEN_ID and MUX_TOKEN_SECRET to .env.local. See MUX_SETUP.md.' },
+        { status: 400 }
+      )
+    }
+
     const { userId } = await auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -21,11 +30,15 @@ export async function POST(request) {
       .eq('clerk_user_id', userId)
       .single()
 
-    const { data: chapter } = await supabase
+    const { data: chapter, error: chapterError } = await supabase
       .from('chapters')
       .select('course_id, courses!inner(teacher_id)')
       .eq('id', chapter_id)
       .single()
+
+    if (chapterError || !chapter) {
+      return NextResponse.json({ error: 'Chapter not found or access denied' }, { status: 404 })
+    }
 
     const teacherId = chapter?.courses?.teacher_id
     if (teacherId !== profile?.id) {
@@ -43,6 +56,10 @@ export async function POST(request) {
     })
   } catch (e) {
     console.error(e)
-    return NextResponse.json({ error: e instanceof Error ? e.message : 'Internal error' }, { status: 500 })
+    const message = e?.message ?? (e instanceof Error ? e.message : 'Internal error')
+    return NextResponse.json(
+      { error: message || 'Internal error' },
+      { status: 500 }
+    )
   }
 }

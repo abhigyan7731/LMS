@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "your-project-id"
+  },
+  "etags": {
+    "firestore.rules": "etag-will-be-generated-on-deploy",
+    "storage.rules": "etag-will-be-generated-on-deploy"
+  }
+}

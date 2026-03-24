@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react'
 
-export function VideoPlayer({ playbackId, chapterId, enrollmentId }) {
+export function VideoPlayer({ playbackId, chapterId, enrollmentId, onVideoEnded }) {
   const onTimeUpdate = useCallback(async (time) => {
     await fetch('/api/progress', {
       method: 'POST',
@@ -25,7 +25,8 @@ export function VideoPlayer({ playbackId, chapterId, enrollmentId }) {
         completed: true,
       }),
     })
-  }, [enrollmentId, chapterId])
+    onVideoEnded?.()
+  }, [enrollmentId, chapterId, onVideoEnded])
 
   if (!playbackId) {
     return (

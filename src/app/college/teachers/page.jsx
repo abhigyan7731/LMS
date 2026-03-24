@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { GraduationCap, BookOpen, Users, TrendingUp, Search } from 'lucide-react';
 
 export const metadata = {

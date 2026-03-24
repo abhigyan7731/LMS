@@ -1,27 +1,38 @@
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { notFound } from 'next/navigation';
 import { LearnView } from '@/components/learn/learn-view';
 
 export default async function LearnPage({ params }) {
   const { slug } = await params;
   const { userId } = await auth();
+  const DEAN_EMAIL = 'abhigyankumar268@gmail.com';
 
   const supabase = createAdminClient();
   const { data: profile } = userId
     ? await supabase
         .from('profiles')
-        .select('id')
+        .select('id, email')
         .eq('clerk_user_id', userId)
         .single()
     : { data: null };
 
-  const { data: course } = await supabase
+  let courseQuery = supabase
     .from('courses')
     .select('*')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .single();
+    .eq('slug', slug);
+
+  const isDean = profile?.email === DEAN_EMAIL;
+  if (isDean) {
+    // dean can access any course for review/testing
+  } else if (profile?.id) {
+    // allow teacher to access own draft course in learn mode
+    courseQuery = courseQuery.or(`is_published.eq.true,teacher_id.eq.${profile.id}`);
+  } else {
+    courseQuery = courseQuery.eq('is_published', true);
+  }
+
+  const { data: course } = await courseQuery.single();
 
   if (!course) notFound();
 

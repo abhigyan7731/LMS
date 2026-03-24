@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { Users, BookOpen, Calendar, Search } from 'lucide-react';
 
 export const metadata = { title: 'Students – Teacher Portal' };
@@ -10,13 +10,13 @@ export default async function TeacherStudentsPage() {
     if (!userId) redirect('/sign-in');
 
     const supabase = createAdminClient();
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('clerk_user_id', userId)
         .single();
 
-    if (!profile) redirect('/onboarding');
+    if (profileError || !profile) redirect('/onboarding');
 
     const { data: courses } = await supabase
         .from('courses')

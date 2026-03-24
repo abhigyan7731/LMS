@@ -1,6 +1,6 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@\/lib\/supabase\/admin-cjs'
 
 export async function POST(req) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET

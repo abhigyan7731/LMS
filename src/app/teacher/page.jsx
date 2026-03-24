@@ -1,10 +1,10 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import Link from 'next/link';
 import {
     BookOpen, Users, DollarSign, TrendingUp,
-    Plus, ArrowRight, Video, Clock, Star
+    Plus, ArrowRight, Video, Clock, Star, Upload, UserCheck
 } from 'lucide-react';
 
 export default async function TeacherPage() {
@@ -187,6 +187,7 @@ export default async function TeacherPage() {
                             { href: '/teacher/courses/new', icon: Plus, label: 'Create New Course', desc: 'Build a new course from scratch', color: 'text-violet-400' },
                             { href: '/teacher/courses', icon: BookOpen, label: 'Manage Courses', desc: `${courses?.length ?? 0} courses · ${draftCount} drafts`, color: 'text-blue-400' },
                             { href: '/teacher/students', icon: Users, label: 'View Students', desc: `${studentsCount} enrolled students`, color: 'text-emerald-400' },
+                            { href: '/teacher/upload', icon: Upload, label: 'Upload Lecture', desc: 'Add video content to courses', color: 'text-orange-400' },
                         ].map((action) => (
                             <Link
                                 key={action.href}

@@ -434,7 +434,11 @@ export function TeacherCourseEditor({ course, chapters: initialChapters, enrollm
                     </div>
 
                     {sortedChapters.length > 0 ? (
-                        <div className="rounded-2xl bg-white/5 border border-white/10 p-2 space-y-1">
+                        <div className="space-y-2">
+                            <p className="text-xs text-white/40">
+                                Tip: Add a final lecture titled &quot;Final Quiz&quot; with no video, then generate a quiz for it so students take the quiz after completing all video lectures.
+                            </p>
+                            <div className="rounded-2xl bg-white/5 border border-white/10 p-2 space-y-1">
                             {sortedChapters.map((ch, i) => (
                                 <ChapterItem
                                     key={ch.id}
@@ -450,6 +454,7 @@ export function TeacherCourseEditor({ course, chapters: initialChapters, enrollm
                                     saving={saving}
                                 />
                             ))}
+                            </div>
                         </div>
                     ) : (
                         <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">

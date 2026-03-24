@@ -1,21 +1,23 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@\/lib\/supabase\/admin-cjs'
 import { slugify } from '@/lib/utils'
 
 export async function POST(request) {
   try {
+    const DEAN_EMAIL = 'abhigyankumar268@gmail.com'
     const { userId } = await auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const supabase = createAdminClient()
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, role')
+      .select('id, role, email')
       .eq('clerk_user_id', userId)
       .single()
 
-    if (!profile || profile.role !== 'teacher') {
+    const isDean = profile?.email === DEAN_EMAIL
+    if (!profile || (!isDean && profile.role !== 'teacher')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

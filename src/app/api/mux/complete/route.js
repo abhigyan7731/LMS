@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import Mux from '@mux/mux-node'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@\/lib\/supabase\/admin-cjs'
 
 const mux = new Mux(process.env.MUX_TOKEN_ID, process.env.MUX_TOKEN_SECRET)
 

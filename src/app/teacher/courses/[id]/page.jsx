@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { TeacherCourseEditor } from '@/components/teacher/teacher-course-editor';

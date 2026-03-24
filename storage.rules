@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // ==================== COURSE THUMBNAILS ====================
+    match /thumbnails/{courseId}/{fileName} {
+      // Anyone can read thumbnails
+      allow read: if true;
+      
+      // Teachers and admins can upload
+      allow write: if isAuthenticated();
+    }
+    
+    // ==================== VIDEO UPLOADS ====================
+    match /videos/{courseId}/{chapterId}/{fileName} {
+      // Authenticated users can read (for enrolled students)
+      allow read: if isAuthenticated();
+      
+      // Teachers can upload videos
+      allow write: if isAuthenticated();
+    }
+    
+    // ==================== USER AVATARS ====================
+    match /avatars/{userId}/{fileName} {
+      // Anyone can read avatars
+      allow read: if true;
+      
+      // Users can upload their own avatar
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ==================== COURSE MATERIALS ====================
+    match /materials/{courseId}/{fileName} {
+      // Enrolled students can read
+      allow read: if isAuthenticated();
+      
+      // Teachers can upload materials
+      allow write: if isAuthenticated();
+    }
+    
+    // ==================== DEFAULT RULE ====================
+    // All other paths require authentication
+    match /{allPaths=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

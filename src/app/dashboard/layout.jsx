@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { DashboardNav } from '@/components/dashboard-nav';
 
 export default async function DashboardLayout({ children }) {
@@ -20,10 +20,10 @@ export default async function DashboardLayout({ children }) {
     .eq('clerk_user_id', userId)
     .single();
 
-  if (error) {
-    console.error('Dashboard profile error:', error);
+  if (error || !profile) {
+    // Profile doesn't exist yet - user needs to onboard
+    redirect('/onboarding');
   }
-  if (!profile) redirect('/onboarding');
 
   const role = profile.role || 'student';
 

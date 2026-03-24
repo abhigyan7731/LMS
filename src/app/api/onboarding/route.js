@@ -1,6 +1,6 @@
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@/lib/supabase/admin-cjs'
 
 export async function POST(request) {
   try {
@@ -23,12 +23,6 @@ export async function POST(request) {
     const { role } = await request.json()
     if (!role || !['teacher', 'student'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
-    }
-
-    // If Supabase isn't configured in this environment, skip DB writes
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      console.warn('Supabase not configured: skipping profile create/update')
-      return NextResponse.json({ success: true, warning: 'Supabase not configured; onboarding skipped' })
     }
 
     const supabase = createAdminClient()

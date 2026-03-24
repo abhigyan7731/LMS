@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@\/lib\/supabase\/admin-cjs'
 
 export async function GET(request) {
   try {

@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { StudentDashboardUI } from './student-dashboard-ui';
 
 export async function StudentDashboard({ userId }) {

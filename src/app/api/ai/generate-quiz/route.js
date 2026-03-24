@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createAdminClient } from '@\/lib\/supabase\/admin-cjs'
 import OpenAI from 'openai'
 import { randomUUID } from 'crypto'
 

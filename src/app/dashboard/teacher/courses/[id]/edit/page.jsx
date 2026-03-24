@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { notFound } from 'next/navigation';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
+import { redirect } from 'next/navigation';
 import { CourseEditor } from '@/components/course/course-editor';
 
 export default async function CourseEditPage({ params }) {
@@ -22,7 +22,7 @@ export default async function CourseEditPage({ params }) {
     .eq('teacher_id', profile?.id)
     .single();
 
-  if (!course) notFound();
+  if (!course) redirect('/');
 
   const { data: chapters } = await supabase
     .from('chapters')

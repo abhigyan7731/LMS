@@ -1,21 +1,42 @@
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnrollButton } from '@/components/course/enroll-button';
 
 export default async function CourseDetailPage({ params }) {
   const { slug } = await params;
   const { userId } = await auth();
+  const DEAN_EMAIL = 'abhigyankumar268@gmail.com';
 
   const supabase = createAdminClient();
-  const { data: course } = await supabase
+  let profile = null;
+  if (userId) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .eq('clerk_user_id', userId)
+      .single();
+    profile = data;
+  }
+
+  let courseQuery = supabase
     .from('courses')
     .select('*')
-    .eq('slug', slug)
-    .eq('is_published', true)
-    .single();
+    .eq('slug', slug);
+
+  const isDean = profile?.email === DEAN_EMAIL;
+  if (isDean) {
+    // dean can preview any draft or published course
+  } else if (profile?.id) {
+    // creator can preview their own draft course
+    courseQuery = courseQuery.or(`is_published.eq.true,teacher_id.eq.${profile.id}`);
+  } else {
+    // public users can only open published courses
+    courseQuery = courseQuery.eq('is_published', true);
+  }
+
+  const { data: course } = await courseQuery.single();
 
   if (!course) notFound();
 
@@ -26,29 +47,22 @@ export default async function CourseDetailPage({ params }) {
     .order('position');
 
   let isEnrolled = false;
-  if (userId) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('clerk_user_id', userId)
-      .single();
-    if (profile) {
+  if (profile?.id) {
       const { data: enrollment } = await supabase
         .from('enrollments')
         .select('id')
-        .eq('student_id', profile.id)
+        .eq('student_id', profile?.id)
         .eq('course_id', course.id)
         .single();
       isEnrolled = !!enrollment;
-    }
   }
 
   return (
     <div className="min-h-screen">
       <header className="border-b">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/courses">← Courses</Link>
-          <Link href="/dashboard">Dashboard</Link>
+          <a href="/courses">← Courses</a>
+          <a href="/dashboard">Dashboard</a>
         </div>
       </header>
 
@@ -96,6 +110,7 @@ export default async function CourseDetailPage({ params }) {
                   courseId={course.id}
                   isEnrolled={isEnrolled}
                   slug={course.slug}
+                  price={course.price}
                 />
               </CardContent>
             </Card>

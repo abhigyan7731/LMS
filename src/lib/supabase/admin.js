@@ -1,26 +1,30 @@
+/**
+ * Supabase Admin Client (ESM version)
+ * Uses service role key for server-side operations with full access
+ */
+
 import { createClient } from '@supabase/supabase-js';
 
-function createNoopClient() {
-  console.warn('Supabase not configured — returning noop supabase client');
-  const proxyHandler = {
-    get() {
-      return () => Promise.resolve({ data: null, error: null });
-    },
-  };
-  const from = () => new Proxy(() => {}, proxyHandler);
-  return new Proxy({ from }, {
-    get(target, prop) {
-      if (prop === 'from') return target.from;
-      return () => Promise.resolve({ data: null, error: null });
-    },
-  });
-}
+let adminClient = null;
 
 export function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    return createNoopClient();
+  if (adminClient) return adminClient;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error(
+      'Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required'
+    );
   }
-  return createClient(url, key, { auth: { persistSession: false } });
+
+  adminClient = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  return adminClient;
 }

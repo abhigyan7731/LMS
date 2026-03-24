@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { TeacherSidebar } from '@/components/teacher/teacher-sidebar';
 
 export const metadata = {
@@ -11,16 +11,19 @@ export const metadata = {
 export default async function TeacherLayout({ children }) {
     const { userId } = await auth();
     if (!userId) redirect('/sign-in');
+    const DEAN_EMAIL = 'abhigyankumar268@gmail.com';
 
     const supabase = createAdminClient();
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, full_name, email, avatar_url, role')
         .eq('clerk_user_id', userId)
         .single();
 
-    if (!profile) redirect('/onboarding');
-    if (profile.role !== 'teacher') redirect('/dashboard');
+    if (profileError || !profile) redirect('/onboarding');
+    
+    const isDean = profile.email === DEAN_EMAIL;
+    if (!isDean && profile.role !== 'teacher') redirect('/dashboard');
 
     return (
         <div className="min-h-screen bg-[#0f0f1a] text-white flex">

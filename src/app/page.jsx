@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
 import { SignOutButton } from '@clerk/nextjs';
+import AuthButtons from './auth-buttons';
 import {
   Sparkles, BookOpen, GraduationCap, Zap, BarChart3, Users,
   Star, ArrowRight, Play, CheckCircle, ChevronRight,
@@ -156,8 +157,11 @@ export default async function HomePage() {
   let userId = null;
   try {
     const r = await auth();
-    userId = r.userId;
-  } catch { /* public */ }
+    userId = r?.userId || null;
+  } catch (e) {
+    console.error('Homepage auth error:', e);
+    userId = null;
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 overflow-x-hidden">
@@ -195,38 +199,7 @@ export default async function HomePage() {
           </nav>
 
           {/* Auth */}
-          <div className="flex items-center gap-2">
-            {userId ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <SignOutButton>
-                  <button className="text-sm font-semibold px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-violet-200 dark:hover:shadow-violet-900/40">
-                    Sign Out
-                  </button>
-                </SignOutButton>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/sign-in"
-                  className="hidden sm:inline-flex text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="text-sm font-semibold px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-violet-200 dark:hover:shadow-violet-900/40"
-                >
-                  Get started
-                </Link>
-              </>
-            )}
-          </div>
+          <AuthButtons userId={userId} />
         </div>
       </header>
 

@@ -57,7 +57,7 @@ export default function OnboardingPage() {
         if (role === 'teacher') {
           router.push('/teacher');
         } else {
-          router.push('/courses');
+          router.push('/student');
         }
         router.refresh();
       } else {
