@@ -90,6 +90,32 @@ This shows:
 4. ✅ Create some test courses and students
 5. ✅ Verify all access controls work as expected
 
+## 💳 Testing Stripe Payments Locally
+
+1. Add these env values to your local `.env` (use test keys):
+
+```
+STRIPE_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+```
+
+2. Start your dev server (Next):
+
+```bash
+npm run dev
+```
+
+3. Use the Stripe CLI to forward webhooks to your local app:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+4. In the app, sign in as a student, open a paid course and click "Buy & Enroll". Complete checkout with a Stripe test card (e.g. `4242 4242 4242 4242`).
+
+5. After payment you should be redirected into the course and an enrollment record will be created (webhook used as fallback).
+
 ## 📞 Support
 
 If you encounter any issues:
