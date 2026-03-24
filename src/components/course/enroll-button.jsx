@@ -21,7 +21,10 @@ export function EnrollButton({ courseId, isEnrolled, slug, price }) {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed');
+      if (!res.ok) {
+        console.error('Enroll API error', { status: res.status, body: data });
+        throw new Error(data?.error || 'Failed');
+      }
 
       if (data?.url) {
         window.location.href = data.url;
@@ -31,8 +34,9 @@ export function EnrollButton({ courseId, isEnrolled, slug, price }) {
       toast.success('Enrolled!');
       router.push(`/learn/${slug}`);
       router.refresh();
-    } catch {
-      toast.error('Failed to start enrollment');
+    } catch (err) {
+      console.error('Enrollment failed', err);
+      toast.error(err?.message || 'Failed to start enrollment');
     } finally {
       setLoading(false);
     }

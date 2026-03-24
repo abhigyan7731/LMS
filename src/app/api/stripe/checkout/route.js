@@ -10,6 +10,7 @@ const stripe = process.env.STRIPE_SECRET_KEY
 export async function POST(request) {
   try {
     if (!stripe) {
+      console.error('Stripe not configured: STRIPE_SECRET_KEY missing')
       return NextResponse.json({ error: 'Stripe is not configured' }, { status: 400 })
     }
 
@@ -18,6 +19,7 @@ export async function POST(request) {
 
     const body = await request.json()
     const { course_id } = body
+    if (!body) console.error('checkout POST received empty body')
     if (!course_id) return NextResponse.json({ error: 'course_id required' }, { status: 400 })
 
     const supabase = createAdminClient()
