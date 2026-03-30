@@ -8,6 +8,10 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up(.*)',
   '/onboarding(.*)',
   '/api/webhooks(.*)',
+  // Allow Stripe and enrollment related API routes to be reachable from the client
+  '/api/stripe(.*)',
+  '/api/enroll(.*)',
+  '/api/certificates(.*)',
 ])
 
 export default clerkMiddleware(async (auth, request) => {

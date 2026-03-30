@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/admin-cjs';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnrollButton } from '@/components/course/enroll-button';
+import dynamic from 'next/dynamic'
+const CertificateButton = dynamic(() => import('@/components/course/certificate-button').then((m) => m.CertificateButton), { ssr: false })
 
 export default async function CourseDetailPage({ params }) {
   const { slug } = await params;
@@ -47,6 +49,8 @@ export default async function CourseDetailPage({ params }) {
     .order('position');
 
   let isEnrolled = false;
+  let enrollmentId = null;
+  let isCompleted = false;
   if (profile?.id) {
       const { data: enrollment } = await supabase
         .from('enrollments')
@@ -55,6 +59,24 @@ export default async function CourseDetailPage({ params }) {
         .eq('course_id', course.id)
         .single();
       isEnrolled = !!enrollment;
+      enrollmentId = enrollment?.id ?? null;
+
+      if (enrollmentId) {
+        const { data: chapters } = await supabase
+          .from('chapters')
+          .select('id')
+          .eq('course_id', course.id)
+
+        const { data: completed } = await supabase
+          .from('progress')
+          .select('id')
+          .eq('enrollment_id', enrollmentId)
+          .eq('completed', true)
+
+        const totalChapters = (chapters ?? []).length
+        const completedCount = (completed ?? []).length
+        isCompleted = totalChapters > 0 && completedCount === totalChapters
+      }
   }
 
   return (
@@ -112,6 +134,9 @@ export default async function CourseDetailPage({ params }) {
                   slug={course.slug}
                   price={course.price}
                 />
+                <div className="mt-4">
+                  <CertificateButton courseId={course.id} enrollmentId={enrollmentId} slug={course.slug} isCompleted={isCompleted} />
+                </div>
               </CardContent>
             </Card>
           </div>
