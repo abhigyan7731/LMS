@@ -4,6 +4,17 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+// Ensure a stable fetch implementation in Node (fixes "TypeError: fetch failed")
+try {
+  if (typeof globalThis.fetch === 'undefined') {
+    // undici provides a modern fetch for Node
+    // dynamic import to avoid ESM/CJS interop issues during build
+    const undici = await import('undici');
+    globalThis.fetch = undici.fetch;
+  }
+} catch (e) {
+  // Non-fatal: fall back to environment-provided fetch if available
+}
 
 let adminClient = null;
 
