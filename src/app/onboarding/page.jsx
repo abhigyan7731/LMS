@@ -61,7 +61,7 @@ export default function OnboardingPage() {
         if (role === 'teacher') {
           router.push('/teacher');
         } else {
-          router.push('/student');
+          router.push('/student/skill-quiz');
         }
         router.refresh();
       } else {
@@ -221,7 +221,7 @@ export default function OnboardingPage() {
           <p className="text-center text-xs text-white/25 mt-4 tilt-in" style={{ animationDelay: '0.4s' }}>
             {role === 'teacher'
               ? "You'll be taken to the Teacher Portal to create your first course."
-              : "You'll be taken to the Course Library to start exploring."}
+              : "You'll take a quick skill quiz to get personalized course recommendations."}
           </p>
         )}
       </div>
