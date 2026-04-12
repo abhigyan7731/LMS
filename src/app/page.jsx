@@ -217,53 +217,116 @@ export default async function HomePage() {
       </div>
 
       {/* ══════════════════════════════════════
-          3D NAVBAR — Floating Glass
+          3D NAVBAR — Floating Holographic Glass
       ══════════════════════════════════════ */}
-      <header className="sticky top-0 z-50 w-full">
+      <header className="sticky top-0 z-50 w-full" style={{ perspective: '1200px' }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3">
-          <div className="relative flex h-14 items-center justify-between rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-2xl px-5" style={{
-            boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(139,92,246,0.05)',
-          }}>
-            {/* Holo shimmer on navbar */}
+          <div className="relative flex h-16 items-center justify-between rounded-2xl bg-white/[0.03] backdrop-blur-2xl px-6 navbar-3d navbar-depth-shadow navbar-inner-glow navbar-reflection"
+            style={{
+              transformStyle: 'preserve-3d',
+              transform: 'translateZ(0)',
+            }}
+          >
+            {/* Holographic shimmer sweep */}
             <div className="absolute inset-0 rounded-2xl holo-shimmer pointer-events-none" />
 
-            {/* Logo — 3D Cube effect */}
-            <Link href="/" className="flex items-center gap-3 font-bold text-lg shrink-0 group relative z-10">
-              <div className="relative" style={{ perspective: '200px' }}>
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/50 transition-all duration-500 group-hover:scale-110 depth-breathe" style={{ transformStyle: 'preserve-3d' }}>
-                  <GraduationCap className="h-5 w-5 text-white" style={{ transform: 'translateZ(5px)' }} />
+            {/* Animated edge glow particles */}
+            <div className="absolute -top-px left-[20%] w-16 h-[2px] pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.6), transparent)',
+                animation: 'border-gradient-shift 4s ease infinite',
+                filter: 'blur(0.5px)',
+              }}
+            />
+            <div className="absolute -top-px right-[30%] w-12 h-[2px] pointer-events-none"
+              style={{
+                background: 'linear-gradient(90deg, transparent, rgba(6,182,212,0.4), transparent)',
+                animation: 'border-gradient-shift 5s ease infinite 1s',
+                filter: 'blur(0.5px)',
+              }}
+            />
+
+            {/* Logo — 3D Rotating Cube */}
+            <Link href="/" className="flex items-center gap-3.5 font-bold text-lg shrink-0 group relative z-10">
+              <div className="relative">
+                {/* 3D Cube */}
+                <div className="cube-logo-wrapper">
+                  <div className="cube-logo">
+                    {/* Front face */}
+                    <div className="cube-face cube-face-front">
+                      <GraduationCap className="h-5 w-5 text-white" style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.5))' }} />
+                    </div>
+                    {/* Back face */}
+                    <div className="cube-face cube-face-back">
+                      <BookMarked className="h-5 w-5 text-white/90" />
+                    </div>
+                    {/* Right face */}
+                    <div className="cube-face cube-face-right">
+                      <Sparkles className="h-5 w-5 text-white/90" />
+                    </div>
+                    {/* Left face */}
+                    <div className="cube-face cube-face-left">
+                      <Brain className="h-5 w-5 text-white/90" />
+                    </div>
+                    {/* Top face */}
+                    <div className="cube-face cube-face-top">
+                      <Rocket className="h-5 w-5 text-white/90" />
+                    </div>
+                    {/* Bottom face */}
+                    <div className="cube-face cube-face-bottom">
+                      <Code2 className="h-5 w-5 text-white/80" />
+                    </div>
+                  </div>
                 </div>
-                {/* Orbiting ring */}
-                <div className="absolute -inset-1.5 rounded-xl border border-violet-500/20 opacity-0 group-hover:opacity-100 orbit-ring transition-opacity" />
+                {/* Shadow under cube */}
+                <div className="cube-shadow" />
+                {/* Orbiting ring on hover */}
+                <div className="absolute -inset-2 rounded-xl border border-violet-500/20 opacity-0 group-hover:opacity-100 orbit-ring transition-opacity duration-500" />
               </div>
-              <div className="flex flex-col">
-                <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent font-extrabold tracking-tight">LearnHub</span>
-                <span className="text-[9px] text-white/25 -mt-0.5 tracking-widest uppercase font-medium">AI Learning</span>
+
+              {/* Brand text with 3D depth */}
+              <div className="flex flex-col" style={{ transform: 'translateZ(8px)' }}>
+                <span className="text-lg font-extrabold tracking-tight bg-gradient-to-r from-violet-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent" style={{
+                  filter: 'drop-shadow(0 0 12px rgba(139,92,246,0.3))',
+                }}>
+                  LearnHub
+                </span>
+                <span className="text-[9px] text-white/25 -mt-0.5 tracking-[0.25em] uppercase font-semibold flex items-center gap-1">
+                  <span className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" />
+                  AI Learning
+                </span>
               </div>
             </Link>
 
-            {/* Nav links — glow on hover */}
-            <nav className="hidden md:flex items-center gap-1 relative z-10">
-              {['Features', 'How it works', 'Pricing', 'Testimonials'].map(link => (
+            {/* Nav links — 3D hover with neon underline */}
+            <nav className="hidden md:flex items-center gap-0.5 relative z-10" style={{ transformStyle: 'preserve-3d' }}>
+              {[
+                { label: 'Features', icon: Layers },
+                { label: 'How it works', icon: Cpu },
+                { label: 'Pricing', icon: Zap },
+                { label: 'Testimonials', icon: MessageSquare },
+              ].map(({ label, icon: Icon }) => (
                 <a
-                  key={link}
-                  href={`#${link.toLowerCase().replace(/ /g, '-')}`}
-                  className="text-sm text-white/40 hover:text-white font-medium px-3.5 py-2 rounded-lg hover:bg-white/[0.06] transition-all duration-300"
+                  key={label}
+                  href={`#${label.toLowerCase().replace(/ /g, '-')}`}
+                  className="nav-link-3d group flex items-center gap-1.5 text-sm text-white/40 hover:text-white font-medium px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] transition-all duration-300"
                 >
-                  {link}
+                  <Icon className="h-3.5 w-3.5 opacity-0 group-hover:opacity-60 transition-all duration-300 -ml-1 group-hover:ml-0" />
+                  {label}
                 </a>
               ))}
               <Link
                 href="/courses"
-                className="text-sm text-white/40 hover:text-white font-medium px-3.5 py-2 rounded-lg hover:bg-white/[0.06] transition-all duration-300 flex items-center gap-1"
+                className="nav-link-3d group flex items-center gap-1.5 text-sm text-white/40 hover:text-white font-medium px-3.5 py-2.5 rounded-xl hover:bg-white/[0.06] transition-all duration-300 ml-1"
               >
+                <BookOpen className="h-3.5 w-3.5 opacity-0 group-hover:opacity-60 transition-all duration-300 -ml-1 group-hover:ml-0" />
                 Courses
-                <ArrowUpRight className="h-3 w-3 opacity-40" />
+                <ArrowUpRight className="h-3 w-3 opacity-30 group-hover:opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-300" />
               </Link>
             </nav>
 
             {/* Auth */}
-            <div className="relative z-10">
+            <div className="relative z-10" style={{ transform: 'translateZ(5px)' }}>
               <AuthButtons userId={userId} />
             </div>
           </div>
