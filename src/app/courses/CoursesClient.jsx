@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
     Search, SlidersHorizontal, X, Star, Clock, BookOpen,
     Users, TrendingUp, Sparkles, Zap, ChevronRight,
     MessageSquare, Send, Bot, GraduationCap, Flame,
     Code2, Palette, Brain, Database, Globe, Shield,
-    ArrowUpRight, Play, Award
+    ArrowUpRight, Play, Award, Layers, Box
 } from 'lucide-react';
 
 // ─── Static metadata per course slug ────────────────────────────────────────
@@ -24,6 +24,7 @@ const COURSE_META = {
         icon: '⚛️',
         gradient: 'from-cyan-400 via-blue-500 to-indigo-600',
         accent: '#06b6d4',
+        accentRGB: '6, 182, 212',
         instructor: 'Alex Rivera',
     },
     'typescript-essentials-demo': {
@@ -38,6 +39,7 @@ const COURSE_META = {
         icon: '🔷',
         gradient: 'from-blue-400 via-blue-500 to-blue-700',
         accent: '#3b82f6',
+        accentRGB: '59, 130, 246',
         instructor: 'Sam Chen',
     },
     'fullstack-nextjs-demo': {
@@ -52,6 +54,7 @@ const COURSE_META = {
         icon: '▲',
         gradient: 'from-gray-700 via-gray-800 to-black',
         accent: '#6366f1',
+        accentRGB: '99, 102, 241',
         instructor: 'Jordan Park',
     },
     'python-data-science-demo': {
@@ -66,6 +69,7 @@ const COURSE_META = {
         icon: '🐍',
         gradient: 'from-yellow-400 via-green-400 to-teal-500',
         accent: '#22c55e',
+        accentRGB: '34, 197, 94',
         instructor: 'Priya Sharma',
     },
     'uiux-design-demo': {
@@ -80,6 +84,7 @@ const COURSE_META = {
         icon: '🎨',
         gradient: 'from-pink-400 via-purple-400 to-violet-500',
         accent: '#a855f7',
+        accentRGB: '168, 85, 247',
         instructor: 'Maya Torres',
     },
 };
@@ -96,6 +101,7 @@ const DEFAULT_META = {
     icon: '📚',
     gradient: 'from-indigo-400 via-purple-400 to-pink-400',
     accent: '#6366f1',
+    accentRGB: '99, 102, 241',
     instructor: 'Instructor',
 };
 
@@ -112,11 +118,11 @@ const CATEGORY_ICONS = {
 };
 
 const TAG_STYLES = {
-    Trending: 'bg-orange-100 text-orange-700 border-orange-200',
-    'Top Rated': 'bg-amber-100 text-amber-700 border-amber-200',
-    New: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    Recommended: 'bg-violet-100 text-violet-700 border-violet-200',
-    Popular: 'bg-rose-100 text-rose-700 border-rose-200',
+    Trending: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+    'Top Rated': 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    New: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    Recommended: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+    Popular: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
 };
 
 const TAG_ICONS = {
@@ -139,15 +145,15 @@ function StarRating({ rating, reviews, students }) {
                         key={i}
                         className={`h-3.5 w-3.5 ${i < full ? 'text-amber-400 fill-amber-400' :
                                 i === full && half ? 'text-amber-400 fill-amber-200' :
-                                    'text-gray-300 fill-gray-200'
+                                    'text-gray-600 fill-gray-700'
                             }`}
                     />
                 ))}
             </div>
-            <span className="text-xs font-semibold text-amber-600">{rating.toFixed(1)}</span>
-            <span className="text-xs text-gray-400">({(reviews / 1000).toFixed(1)}k)</span>
-            <span className="text-gray-300">·</span>
-            <span className="text-xs text-gray-400 flex items-center gap-0.5">
+            <span className="text-xs font-semibold text-amber-400">{rating.toFixed(1)}</span>
+            <span className="text-xs text-white/40">({(reviews / 1000).toFixed(1)}k)</span>
+            <span className="text-white/20">·</span>
+            <span className="text-xs text-white/40 flex items-center gap-0.5">
                 <Users className="h-3 w-3" />
                 {(students / 1000).toFixed(1)}k
             </span>
@@ -155,74 +161,170 @@ function StarRating({ rating, reviews, students }) {
     );
 }
 
-// ─── Skeleton card for loading ───────────────────────────────────────────────
-function SkeletonCard() {
+// ─── 3D Skeleton card for loading ────────────────────────────────────────────
+function SkeletonCard({ index }) {
     return (
-        <div className="rounded-2xl overflow-hidden bg-white/60 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 shadow-sm animate-pulse">
-            <div className="h-48 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 shimmer" />
+        <div
+            className="rounded-2xl overflow-hidden border border-white/10 animate-pulse"
+            style={{
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(20px)',
+                animation: `tilt-in 0.6s ease-out both`,
+                animationDelay: `${(index || 0) * 0.1}s`,
+                transformStyle: 'preserve-3d',
+            }}
+        >
+            <div className="h-52 relative overflow-hidden">
+                <div className="absolute inset-0" style={{
+                    background: 'linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02) 75%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'holo-shimmer 2s linear infinite',
+                }} />
+            </div>
             <div className="p-5 space-y-3">
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
-                <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+                <div className="h-3 bg-white/5 rounded w-1/4" />
+                <div className="h-5 bg-white/5 rounded w-3/4" />
+                <div className="h-3 bg-white/5 rounded w-full" />
+                <div className="h-3 bg-white/5 rounded w-5/6" />
                 <div className="pt-2 flex justify-between">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+                    <div className="h-4 bg-white/5 rounded w-1/3" />
+                    <div className="h-4 bg-white/5 rounded w-1/4" />
                 </div>
             </div>
         </div>
     );
 }
 
-// ─── Course Card ─────────────────────────────────────────────────────────────
-function CourseCard({ course }) {
+// ─── 3D Course Card with Mouse-Tracking Tilt ─────────────────────────────────
+function CourseCard3D({ course, index }) {
     const meta = COURSE_META[course.slug] ?? DEFAULT_META;
+    const cardRef = useRef(null);
+    const glareRef = useRef(null);
     const [hovered, setHovered] = useState(false);
+    const [appeared, setAppeared] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setAppeared(true), 100 + index * 80);
+        return () => clearTimeout(timer);
+    }, [index]);
+
+    const handleMouseMove = useCallback((e) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -12;
+        const rotateY = ((x - centerX) / centerX) * 12;
+
+        cardRef.current.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px) scale(1.02)`;
+
+        if (glareRef.current) {
+            const glareX = (x / rect.width) * 100;
+            const glareY = (y / rect.height) * 100;
+            glareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.15) 0%, transparent 60%)`;
+            glareRef.current.style.opacity = '1';
+        }
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setHovered(false);
+        if (cardRef.current) {
+            cardRef.current.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateZ(0) scale(1)';
+        }
+        if (glareRef.current) {
+            glareRef.current.style.opacity = '0';
+        }
+    }, []);
 
     return (
         <Link href={`/courses/${course.slug}`} className="group block">
             <div
-                className="relative rounded-2xl overflow-hidden bg-white dark:bg-gray-800/90 border border-gray-100 dark:border-gray-700/60 shadow-md transition-all duration-300 ease-out h-full flex flex-col"
+                ref={cardRef}
+                className="relative rounded-2xl overflow-hidden h-full flex flex-col"
                 style={{
-                    transform: hovered ? 'translateY(-6px) scale(1.01)' : 'translateY(0) scale(1)',
+                    transformStyle: 'preserve-3d',
+                    transition: hovered ? 'none' : 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, opacity 0.6s ease',
+                    transform: appeared
+                        ? 'perspective(800px) rotateX(0) rotateY(0) translateZ(0) scale(1)'
+                        : 'perspective(800px) rotateX(8deg) translateY(40px) translateZ(-30px) scale(0.95)',
+                    opacity: appeared ? 1 : 0,
+                    background: 'rgba(15, 15, 35, 0.8)',
+                    backdropFilter: 'blur(24px)',
+                    border: `1px solid rgba(${meta.accentRGB}, ${hovered ? 0.5 : 0.15})`,
                     boxShadow: hovered
-                        ? `0 20px 40px -8px ${meta.accent}33, 0 8px 16px -4px rgba(0,0,0,0.12), 0 0 0 1px ${meta.accent}40`
-                        : '0 4px 12px -2px rgba(0,0,0,0.08)',
+                        ? `0 25px 60px -12px rgba(${meta.accentRGB}, 0.35), 0 0 0 1px rgba(${meta.accentRGB}, 0.4), 0 0 40px rgba(${meta.accentRGB}, 0.15), inset 0 1px 0 rgba(255,255,255,0.1)`
+                        : `0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)`,
                 }}
                 onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
             >
+                {/* Glare overlay */}
+                <div
+                    ref={glareRef}
+                    className="absolute inset-0 z-30 pointer-events-none rounded-2xl"
+                    style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+                />
+
+                {/* Holo scanline */}
+                <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden rounded-2xl">
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `linear-gradient(180deg, transparent 0%, rgba(${meta.accentRGB}, 0.03) 45%, rgba(${meta.accentRGB}, 0.08) 50%, rgba(${meta.accentRGB}, 0.03) 55%, transparent 100%)`,
+                            animation: 'holo-scan 4s linear infinite',
+                        }}
+                    />
+                </div>
+
+                {/* Edge glow on hover */}
+                {hovered && (
+                    <div className="absolute inset-0 z-10 pointer-events-none rounded-2xl" style={{
+                        boxShadow: `inset 0 0 30px rgba(${meta.accentRGB}, 0.1)`,
+                    }} />
+                )}
+
                 {/* Thumbnail */}
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-52 overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
                     <div className={`absolute inset-0 bg-gradient-to-br ${meta.gradient}`} />
                     {course.thumbnail_url && (
                         <img
                             src={course.thumbnail_url}
                             alt={course.title}
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
-                            style={{ transform: hovered ? 'scale(1.12)' : 'scale(1)' }}
+                            style={{
+                                transform: hovered ? 'scale(1.15) translateZ(10px)' : 'scale(1) translateZ(0)',
+                            }}
                         />
                     )}
-                    {/* Overlay for readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                    {/* Dark gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(15,15,35,1)] via-[rgba(15,15,35,0.3)] to-transparent" />
 
-                    {/* Price badge */}
-                    <div className="absolute top-3 right-3 z-10">
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-sm border ${Number(course.price) === 0
-                                ? 'bg-emerald-500/90 text-white border-emerald-400/50'
-                                : 'bg-white/95 text-gray-900 border-white/50'
-                            }`}>
+                    {/* Floating 3D price badge */}
+                    <div className="absolute top-3 right-3 z-20" style={{ transform: 'translateZ(30px)' }}>
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md border ${Number(course.price) === 0
+                                ? 'bg-emerald-500/80 text-white border-emerald-400/50'
+                                : 'bg-white/10 text-white border-white/30'
+                            }`}
+                            style={{
+                                boxShadow: Number(course.price) === 0
+                                    ? '0 4px 20px rgba(34,197,94,0.4)'
+                                    : '0 4px 20px rgba(0,0,0,0.3)',
+                            }}
+                        >
                             {Number(course.price) === 0 ? '✦ FREE' : `$${Number(course.price).toFixed(2)}`}
                         </span>
                     </div>
 
                     {/* Tags */}
                     {meta.tags.length > 0 && (
-                        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+                        <div className="absolute top-3 left-3 z-20 flex flex-col gap-1" style={{ transform: 'translateZ(25px)' }}>
                             {meta.tags.slice(0, 1).map(tag => (
                                 <span
                                     key={tag}
-                                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold border shadow-sm backdrop-blur-sm ${TAG_STYLES[tag] ?? 'bg-gray-100 text-gray-600'}`}
+                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border backdrop-blur-md ${TAG_STYLES[tag] ?? 'bg-gray-100/20 text-gray-300'}`}
                                 >
                                     {TAG_ICONS[tag]}
                                     {tag}
@@ -231,64 +333,77 @@ function CourseCard({ course }) {
                         </div>
                     )}
 
-                    {/* Play button on hover */}
+                    {/* 3D Play button on hover */}
                     <div
-                        className="absolute inset-0 flex items-center justify-center z-10 transition-opacity duration-300"
-                        style={{ opacity: hovered ? 1 : 0 }}
+                        className="absolute inset-0 flex items-center justify-center z-20 transition-all duration-500"
+                        style={{
+                            opacity: hovered ? 1 : 0,
+                            transform: hovered ? 'translateZ(40px) scale(1)' : 'translateZ(20px) scale(0.7)',
+                        }}
                     >
                         <div
-                            className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center shadow-xl transition-transform duration-300"
-                            style={{ transform: hovered ? 'scale(1)' : 'scale(0.8)' }}
+                            className="w-16 h-16 rounded-full flex items-center justify-center"
+                            style={{
+                                background: `rgba(${meta.accentRGB}, 0.3)`,
+                                backdropFilter: 'blur(16px)',
+                                border: `2px solid rgba(${meta.accentRGB}, 0.6)`,
+                                boxShadow: `0 0 30px rgba(${meta.accentRGB}, 0.4), inset 0 0 20px rgba(${meta.accentRGB}, 0.1)`,
+                            }}
                         >
-                            <Play className="h-6 w-6 text-white fill-white ml-1" />
+                            <Play className="h-7 w-7 text-white fill-white ml-1" style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }} />
                         </div>
                     </div>
 
                     {/* Bottom info bar — course icon + category */}
-                    <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between">
+                    <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between" style={{ transform: 'translateZ(15px)' }}>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl drop-shadow-lg">{meta.icon}</span>
-                            <span className="text-xs font-medium text-white/90 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                            <span className="text-2xl" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))' }}>{meta.icon}</span>
+                            <span className="text-xs font-medium text-white/90 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
                                 {meta.category}
                             </span>
                         </div>
-                        <span className="text-xs text-white/80 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                        <span className="text-xs text-white/80 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
                             {meta.level}
                         </span>
                     </div>
                 </div>
 
                 {/* Card Body */}
-                <div className="p-5 flex flex-col flex-1">
+                <div className="p-5 flex flex-col flex-1 relative" style={{ transform: 'translateZ(5px)' }}>
                     {/* Instructor */}
-                    <p className="text-[11px] uppercase tracking-widest text-indigo-400 font-semibold mb-1.5">
+                    <p className="text-[11px] uppercase tracking-widest font-semibold mb-1.5"
+                        style={{ color: meta.accent }}>
                         {meta.instructor}
                     </p>
 
                     {/* Title */}
                     <h3
-                        className="font-bold text-base text-gray-900 dark:text-white line-clamp-2 leading-snug mb-2 transition-colors duration-200"
-                        style={{ color: hovered ? meta.accent : undefined }}
+                        className="font-bold text-base text-white line-clamp-2 leading-snug mb-2 transition-colors duration-300"
+                        style={{ color: hovered ? meta.accent : 'white' }}
                     >
                         {course.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed flex-1 mb-3">
+                    <p className="text-sm text-white/40 line-clamp-2 leading-relaxed flex-1 mb-3">
                         {course.description ?? 'No description available.'}
                     </p>
 
                     {/* Rating row */}
                     <StarRating rating={meta.rating} reviews={meta.reviews} students={meta.students} />
 
-                    {/* Hover info slide-up */}
+                    {/* 3D Slide-up details on hover */}
                     <div
-                        className="overflow-hidden transition-all duration-300 ease-out"
-                        style={{ maxHeight: hovered ? '60px' : '0px', opacity: hovered ? 1 : 0 }}
+                        className="overflow-hidden transition-all duration-500 ease-out"
+                        style={{
+                            maxHeight: hovered ? '70px' : '0px',
+                            opacity: hovered ? 1 : 0,
+                            transform: hovered ? 'translateZ(10px) translateY(0)' : 'translateZ(0) translateY(10px)',
+                        }}
                     >
-                        <div className="flex items-center gap-3 pt-3 mt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500 flex-wrap">
+                        <div className="flex items-center gap-3 pt-3 mt-3 border-t border-white/10 text-xs text-white/50 flex-wrap">
                             <span className="flex items-center gap-1">
-                                <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
+                                <BookOpen className="h-3.5 w-3.5" style={{ color: meta.accent }} />
                                 {meta.lessons} lessons
                             </span>
                             <span className="flex items-center gap-1">
@@ -302,23 +417,28 @@ function CourseCard({ course }) {
                         </div>
                     </div>
 
-                    {/* Footer: Enroll button */}
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <div className="text-xs text-gray-400">
+                    {/* Footer: 3D Enroll button */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                        <div className="text-xs text-white/30">
                             {meta.lessons} lessons · {meta.duration}
                         </div>
-
                         <button
-                            className="group/btn flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold text-white shadow-md transition-all duration-300 overflow-hidden relative"
-                            style={{ background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}bb)` }}
+                            className="group/btn flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-lg transition-all duration-300 overflow-hidden relative"
+                            style={{
+                                background: `linear-gradient(135deg, rgba(${meta.accentRGB}, 0.8), rgba(${meta.accentRGB}, 0.5))`,
+                                border: `1px solid rgba(${meta.accentRGB}, 0.4)`,
+                                transform: hovered ? 'translateZ(15px) translateY(-1px)' : 'translateZ(0)',
+                                boxShadow: hovered
+                                    ? `0 8px 25px rgba(${meta.accentRGB}, 0.4), 0 0 15px rgba(${meta.accentRGB}, 0.2)`
+                                    : `0 4px 12px rgba(0,0,0,0.3)`,
+                            }}
                         >
                             <span className="relative z-10">Enroll</span>
                             <ChevronRight
                                 className="h-3.5 w-3.5 relative z-10 transition-transform duration-200 group-hover/btn:translate-x-0.5"
                             />
-                            {/* Ripple overlay */}
                             <div
-                                className="absolute inset-0 bg-white/20 transition-opacity duration-300"
+                                className="absolute inset-0 bg-white/10 transition-opacity duration-300"
                                 style={{ opacity: hovered ? 1 : 0 }}
                             />
                         </button>
@@ -381,7 +501,10 @@ function AskAIPanel() {
             <button
                 onClick={() => setOpen(o => !o)}
                 className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-110"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}
+                style={{
+                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                    boxShadow: '0 8px 32px rgba(99,102,241,0.5), 0 0 20px rgba(168,85,247,0.3)',
+                }}
                 aria-label="Ask AI for course help"
             >
                 {open
@@ -389,25 +512,28 @@ function AskAIPanel() {
                     : <MessageSquare className="h-6 w-6 text-white" />
                 }
                 {!open && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white animate-pulse" />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#0f0c29] animate-pulse" />
                 )}
             </button>
 
             {/* Panel */}
             <div
-                className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden shadow-2xl border border-white/20 transition-all duration-300 ease-out"
+                className="fixed bottom-24 right-6 z-50 w-80 sm:w-96 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ease-out"
                 style={{
-                    transform: open ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(16px)',
+                    transform: open ? 'scale(1) translateY(0) perspective(800px) rotateX(0)' : 'scale(0.9) translateY(24px) perspective(800px) rotateX(10deg)',
                     opacity: open ? 1 : 0,
                     pointerEvents: open ? 'all' : 'none',
-                    background: 'rgba(15, 15, 30, 0.95)',
-                    backdropFilter: 'blur(20px)',
+                    background: 'rgba(10, 10, 30, 0.95)',
+                    backdropFilter: 'blur(30px)',
+                    border: '1px solid rgba(99,102,241,0.3)',
+                    boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 30px rgba(99,102,241,0.15)',
                 }}
             >
                 {/* Header */}
                 <div className="px-4 py-3 flex items-center gap-3 border-b border-white/10"
-                    style={{ background: 'linear-gradient(135deg, #6366f130, #a855f730)' }}>
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))' }}>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"
+                        style={{ boxShadow: '0 4px 15px rgba(99,102,241,0.4)' }}>
                         <Bot className="h-4 w-4 text-white" />
                     </div>
                     <div>
@@ -431,7 +557,7 @@ function AskAIPanel() {
                             <div
                                 className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${m.role === 'user'
                                         ? 'bg-indigo-600 text-white rounded-br-sm'
-                                        : 'bg-white/10 text-gray-100 rounded-bl-sm'
+                                        : 'bg-white/10 text-gray-100 rounded-bl-sm border border-white/5'
                                     }`}
                             >
                                 {m.text.replace(/\*\*/g, '')}
@@ -443,9 +569,9 @@ function AskAIPanel() {
                             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                                 <Sparkles className="h-3 w-3 text-white" />
                             </div>
-                            <div className="bg-white/10 rounded-2xl rounded-bl-sm px-3 py-2 flex gap-1">
+                            <div className="bg-white/10 rounded-2xl rounded-bl-sm px-3 py-2 flex gap-1 border border-white/5">
                                 {[0, 1, 2].map(i => (
-                                    <div key={i} className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                                    <div key={i} className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
                                 ))}
                             </div>
                         </div>
@@ -459,7 +585,7 @@ function AskAIPanel() {
                         <button
                             key={s}
                             onClick={() => send(s)}
-                            className="text-[11px] px-2.5 py-1 rounded-full bg-white/10 text-gray-300 hover:bg-indigo-500/30 hover:text-white transition-colors border border-white/10"
+                            className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 text-gray-400 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all border border-white/10 hover:border-indigo-500/30"
                         >
                             {s}
                         </button>
@@ -473,11 +599,12 @@ function AskAIPanel() {
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && send()}
                         placeholder="Ask about courses..."
-                        className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-indigo-400 transition-colors"
+                        className="flex-1 bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-600 outline-none focus:border-indigo-500/60 focus:bg-white/8 transition-all"
                     />
                     <button
                         onClick={() => send()}
                         className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md hover:shadow-indigo-500/40 hover:scale-105 transition-all"
+                        style={{ boxShadow: '0 4px 15px rgba(99,102,241,0.3)' }}
                     >
                         <Send className="h-4 w-4 text-white" />
                     </button>
@@ -487,17 +614,46 @@ function AskAIPanel() {
     );
 }
 
+// ─── 3D Floating Particle ────────────────────────────────────────────────────
+function FloatingParticle({ style, size = 4, color = 'rgba(99,102,241,0.3)', delay = 0 }) {
+    return (
+        <div
+            className="absolute rounded-full pointer-events-none"
+            style={{
+                width: size,
+                height: size,
+                background: color,
+                filter: `blur(${size > 6 ? 2 : 1}px)`,
+                animation: `particle-float ${8 + Math.random() * 4}s ease-in-out infinite`,
+                animationDelay: `${delay}s`,
+                ...style,
+            }}
+        />
+    );
+}
+
 // ─── Main Client Component ───────────────────────────────────────────────────
 export default function CoursesClient({ courses, fetchError }) {
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('All');
     const [sort, setSort] = useState('Popular');
     const [loading, setLoading] = useState(true);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const heroRef = useRef(null);
 
     // Simulate initial load shimmer
     useEffect(() => {
         const t = setTimeout(() => setLoading(false), 800);
         return () => clearTimeout(t);
+    }, []);
+
+    // Track mouse for hero parallax
+    const handleHeroMouse = useCallback((e) => {
+        if (!heroRef.current) return;
+        const rect = heroRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+        const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+        setMousePos({ x, y });
     }, []);
 
     const filtered = useMemo(() => {
@@ -527,119 +683,258 @@ export default function CoursesClient({ courses, fetchError }) {
     }, [courses, category, search, sort]);
 
     return (
-        <div className="min-h-screen" style={{
-            background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #1a1a2e 100%)',
+        <div className="min-h-screen relative" style={{
+            background: 'linear-gradient(135deg, #050510 0%, #0a0a2e 25%, #12123a 50%, #0a0a2e 75%, #050510 100%)',
         }}>
 
-            {/* Global shimmer keyframe */}
+            {/* ── Injected 3D keyframes ──────────────────────────────────── */}
             <style>{`
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        .shimmer {
-          background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.5s infinite;
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
-        }
-        .float-slow { animation: float 6s ease-in-out infinite; }
-        .float-mid  { animation: float 4.5s ease-in-out infinite 1s; }
-      `}</style>
+                @keyframes shimmer-3d {
+                    0% { background-position: -200% 0; }
+                    100% { background-position: 200% 0; }
+                }
+                @keyframes float-hero {
+                    0%, 100% { transform: translateY(0) translateZ(0); }
+                    50% { transform: translateY(-20px) translateZ(30px); }
+                }
+                @keyframes orbit-slow {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                @keyframes pulse-glow {
+                    0%, 100% { opacity: 0.3; transform: scale(1); }
+                    50% { opacity: 0.6; transform: scale(1.1); }
+                }
+                @keyframes grid-perspective {
+                    0%, 100% { opacity: 0.04; }
+                    50% { opacity: 0.08; }
+                }
+                @keyframes text-shimmer {
+                    0% { background-position: -100% center; }
+                    100% { background-position: 200% center; }
+                }
+                .hero-text-3d {
+                    text-shadow: 
+                        0 1px 0 rgba(255,255,255,0.05),
+                        0 2px 0 rgba(255,255,255,0.02),
+                        0 4px 8px rgba(0,0,0,0.4),
+                        0 8px 16px rgba(0,0,0,0.3),
+                        0 16px 32px rgba(0,0,0,0.2);
+                }
+                .depth-layer-1 { transform: translateZ(60px); }
+                .depth-layer-2 { transform: translateZ(40px); }
+                .depth-layer-3 { transform: translateZ(20px); }
+            `}</style>
 
-            {/* ── Decorative background blobs ───────────────────────────── */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none select-none z-0">
-                <div className="float-slow absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full opacity-20"
-                    style={{ background: 'radial-gradient(circle, #6366f1, transparent 70%)' }} />
-                <div className="float-mid absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full opacity-15"
-                    style={{ background: 'radial-gradient(circle, #a855f7, transparent 70%)' }} />
-                <div className="absolute top-[40%] left-[50%] w-[400px] h-[400px] rounded-full opacity-10"
-                    style={{ background: 'radial-gradient(circle, #06b6d4, transparent 70%)' }} />
+            {/* ── 3D Perspective Grid Background ──────────────────────────── */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                {/* Perspective grid floor */}
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `
+                        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '80px 80px',
+                    transform: 'perspective(400px) rotateX(65deg)',
+                    transformOrigin: 'center top',
+                    maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 50%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 50%)',
+                    animation: 'grid-perspective 8s ease-in-out infinite',
+                }} />
+
+                {/* Floating particles */}
+                <FloatingParticle style={{ top: '10%', left: '8%' }} size={6} color="rgba(99,102,241,0.4)" delay={0} />
+                <FloatingParticle style={{ top: '25%', right: '12%' }} size={4} color="rgba(168,85,247,0.3)" delay={1.5} />
+                <FloatingParticle style={{ top: '45%', left: '20%' }} size={8} color="rgba(6,182,212,0.25)" delay={3} />
+                <FloatingParticle style={{ top: '60%', right: '25%' }} size={5} color="rgba(139,92,246,0.35)" delay={2} />
+                <FloatingParticle style={{ top: '75%', left: '40%' }} size={3} color="rgba(236,72,153,0.3)" delay={4} />
+                <FloatingParticle style={{ top: '15%', left: '55%' }} size={7} color="rgba(59,130,246,0.3)" delay={1} />
+                <FloatingParticle style={{ top: '80%', right: '8%' }} size={4} color="rgba(16,185,129,0.3)" delay={2.5} />
+                <FloatingParticle style={{ top: '35%', left: '70%' }} size={5} color="rgba(245,158,11,0.25)" delay={3.5} />
+
+                {/* Large ambient glow orbs */}
+                <div className="absolute top-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(99,102,241,0.4), transparent 70%)',
+                        animation: 'float-hero 8s ease-in-out infinite',
+                    }} />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] rounded-full opacity-15"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(168,85,247,0.3), transparent 70%)',
+                        animation: 'float-hero 10s ease-in-out infinite 2s',
+                    }} />
+                <div className="absolute top-[40%] left-[45%] w-[500px] h-[500px] rounded-full opacity-10"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(6,182,212,0.3), transparent 70%)',
+                        animation: 'float-hero 12s ease-in-out infinite 4s',
+                    }} />
+
+                {/* Orbiting ring */}
+                <div className="absolute top-[20%] right-[15%] w-48 h-48" style={{
+                    border: '1px solid rgba(99,102,241,0.15)',
+                    borderRadius: '50%',
+                    animation: 'orbit-slow 20s linear infinite',
+                }}>
+                    <div className="absolute -top-1 left-1/2 w-2 h-2 rounded-full bg-indigo-400" style={{
+                        boxShadow: '0 0 10px rgba(99,102,241,0.6)',
+                        animation: 'pulse-glow 2s ease-in-out infinite',
+                    }} />
+                </div>
             </div>
 
-            {/* ── Sticky Navbar ─────────────────────────────────────────── */}
-            <header className="sticky top-0 z-40 border-b border-white/10"
-                style={{ background: 'rgba(15, 12, 41, 0.85)', backdropFilter: 'blur(20px)' }}>
+            {/* ── Sticky 3D Navbar ────────────────────────────────────────── */}
+            <header className="sticky top-0 z-40 border-b border-white/8"
+                style={{
+                    background: 'rgba(5, 5, 16, 0.8)',
+                    backdropFilter: 'blur(24px) saturate(1.5)',
+                    boxShadow: '0 4px 30px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(255,255,255,0.05)',
+                }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    <Link href="/" className="flex items-center gap-3 font-bold text-xl group">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                            style={{
+                                boxShadow: '0 4px 15px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                transformStyle: 'preserve-3d',
+                            }}>
                             <GraduationCap className="h-5 w-5 text-white" />
                         </div>
-                        <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                        <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-extrabold tracking-tight">
                             LearnHub
                         </span>
                     </Link>
                     <Link
                         href="/dashboard"
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/80 border border-white/20 hover:border-indigo-400/60 hover:text-white hover:bg-white/5 transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white/70 border border-white/15 hover:border-indigo-400/50 hover:text-white hover:bg-white/5 transition-all duration-300"
+                        style={{ backdropFilter: 'blur(12px)' }}
                     >
                         Dashboard <ArrowUpRight className="h-4 w-4" />
                     </Link>
                 </div>
             </header>
 
-            {/* ── Hero / Search Section ───────────────────────────────────── */}
-            <section className="relative z-10 pt-16 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-                {/* AI tagline chip */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold mb-6 border"
-                    style={{ background: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,0.4)', color: '#a5b4fc' }}>
-                    <Sparkles className="h-3.5 w-3.5" />
-                    AI-Powered Recommendations
-                </div>
-
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-4 leading-tight">
-                    Browse{' '}
-                    <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Courses
-                    </span>
-                </h1>
-
-                <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10">
-                    Personalized course recommendations generated in real time — based on your skills, goals,
-                    and what top learners are doing right now.
-                </p>
-
-                {/* ── Big Search Bar ─────────────────────────────────────────── */}
-                <div className="relative max-w-2xl mx-auto mb-8 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-indigo-400 transition-colors" />
-                    <input
-                        id="course-search"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Search courses, topics, skills..."
-                        className="w-full pl-12 pr-12 py-4 rounded-2xl text-white placeholder:text-gray-500 text-base outline-none transition-all duration-300"
+            {/* ── 3D Hero / Search Section ─────────────────────────────────── */}
+            <section
+                ref={heroRef}
+                onMouseMove={handleHeroMouse}
+                className="relative z-10 pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center"
+                style={{ perspective: '1200px' }}
+            >
+                {/* 3D Layered content */}
+                <div style={{
+                    transformStyle: 'preserve-3d',
+                    transform: `rotateY(${mousePos.x * 3}deg) rotateX(${mousePos.y * -3}deg)`,
+                    transition: 'transform 0.15s ease-out',
+                }}>
+                    {/* AI tagline chip — Layer 3 (furthest forward) */}
+                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-semibold mb-8 border transition-all duration-300"
                         style={{
-                            background: 'rgba(255,255,255,0.06)',
-                            border: '1.5px solid rgba(255,255,255,0.12)',
+                            background: 'rgba(99,102,241,0.12)',
+                            borderColor: 'rgba(99,102,241,0.35)',
+                            color: '#a5b4fc',
+                            transform: `translateZ(60px) translateX(${mousePos.x * 15}px) translateY(${mousePos.y * 15}px)`,
+                            boxShadow: '0 4px 20px rgba(99,102,241,0.15)',
                             backdropFilter: 'blur(12px)',
-                            boxShadow: search ? '0 0 0 3px rgba(99,102,241,0.3)' : 'none',
-                            borderColor: search ? 'rgba(99,102,241,0.6)' : 'rgba(255,255,255,0.12)',
+                        }}>
+                        <Sparkles className="h-3.5 w-3.5" />
+                        AI-Powered Recommendations
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+
+                    {/* 3D Hero Title — Layer 2 */}
+                    <h1
+                        className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-5 leading-tight hero-text-3d"
+                        style={{
+                            transform: `translateZ(40px) translateX(${mousePos.x * 8}px) translateY(${mousePos.y * 8}px)`,
                         }}
-                    />
-                    {search && (
-                        <button
-                            onClick={() => setSearch('')}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                        Browse{' '}
+                        <span
+                            className="relative inline-block"
+                            style={{
+                                background: 'linear-gradient(135deg, #818cf8, #a78bfa, #c084fc, #f472b6, #818cf8)',
+                                backgroundSize: '300% auto',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                                animation: 'text-shimmer 4s linear infinite',
+                            }}
                         >
-                            <X className="h-4 w-4" />
-                        </button>
-                    )}
+                            Courses
+                        </span>
+                    </h1>
+
+                    {/* Subtitle — Layer 1 */}
+                    <p className="text-base sm:text-lg text-white/40 max-w-2xl mx-auto mb-12"
+                        style={{
+                            transform: `translateZ(20px) translateX(${mousePos.x * 4}px) translateY(${mousePos.y * 4}px)`,
+                        }}>
+                        Personalized course recommendations generated in real time — based on your skills, goals,
+                        and what top learners are doing right now.
+                    </p>
                 </div>
 
-                {/* ── Category Filters ──────────────────────────────────────── */}
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                    {CATEGORIES.map(cat => (
+                {/* ── 3D Search Bar ────────────────────────────────────────── */}
+                <div
+                    className="relative max-w-2xl mx-auto mb-10 group"
+                    style={{
+                        perspectiveOrigin: 'center',
+                        transformStyle: 'preserve-3d',
+                    }}
+                >
+                    <div className="relative" style={{
+                        transform: search ? 'translateZ(10px)' : 'translateZ(0)',
+                        transition: 'transform 0.3s ease',
+                    }}>
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-indigo-400 transition-colors z-10" />
+                        <input
+                            id="course-search"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search courses, topics, skills..."
+                            className="w-full pl-14 pr-14 py-5 rounded-2xl text-white placeholder:text-white/25 text-base outline-none transition-all duration-300"
+                            style={{
+                                background: 'rgba(255,255,255,0.04)',
+                                border: search ? '1.5px solid rgba(99,102,241,0.5)' : '1.5px solid rgba(255,255,255,0.08)',
+                                backdropFilter: 'blur(20px)',
+                                boxShadow: search
+                                    ? '0 0 0 4px rgba(99,102,241,0.15), 0 8px 32px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.05)'
+                                    : '0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+                            }}
+                        />
+                        {search && (
+                            <button
+                                onClick={() => setSearch('')}
+                                className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors z-10"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── 3D Category Filters ──────────────────────────────────── */}
+                <div className="flex flex-wrap justify-center gap-2.5 mb-8" style={{ perspective: '800px' }}>
+                    {CATEGORIES.map((cat, i) => (
                         <button
                             key={cat}
                             id={`cat-${cat.toLowerCase()}`}
                             onClick={() => setCategory(cat)}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200"
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
                             style={category === cat
-                                ? { background: 'linear-gradient(135deg, #6366f1, #a855f7)', color: 'white', boxShadow: '0 4px 16px rgba(99,102,241,0.4)' }
-                                : { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.12)' }
+                                ? {
+                                    background: 'linear-gradient(135deg, rgba(99,102,241,0.9), rgba(168,85,247,0.9))',
+                                    color: 'white',
+                                    boxShadow: '0 8px 25px rgba(99,102,241,0.4), 0 0 0 1px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
+                                    transform: 'translateZ(10px) translateY(-2px)',
+                                    border: '1px solid transparent',
+                                }
+                                : {
+                                    background: 'rgba(255,255,255,0.04)',
+                                    color: 'rgba(255,255,255,0.5)',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    transform: 'translateZ(0)',
+                                    backdropFilter: 'blur(12px)',
+                                }
                             }
                         >
                             {CATEGORY_ICONS[cat]}
@@ -648,18 +943,26 @@ export default function CoursesClient({ courses, fetchError }) {
                     ))}
                 </div>
 
-                {/* ── Sort Toggle ───────────────────────────────────────────── */}
-                <div className="inline-flex rounded-xl overflow-hidden border border-white/10 p-1"
-                    style={{ background: 'rgba(255,255,255,0.05)' }}>
+                {/* ── 3D Sort Toggle ───────────────────────────────────────── */}
+                <div className="inline-flex rounded-2xl overflow-hidden border border-white/8 p-1.5"
+                    style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        backdropFilter: 'blur(16px)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.2)',
+                    }}>
                     {SORT_OPTIONS.map(opt => (
                         <button
                             key={opt}
                             id={`sort-${opt.toLowerCase().replace(' ', '-')}`}
                             onClick={() => setSort(opt)}
-                            className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300"
                             style={sort === opt
-                                ? { background: 'rgba(99,102,241,0.3)', color: 'white', boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }
-                                : { color: 'rgba(255,255,255,0.5)' }
+                                ? {
+                                    background: 'linear-gradient(135deg, rgba(99,102,241,0.4), rgba(168,85,247,0.3))',
+                                    color: 'white',
+                                    boxShadow: '0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+                                }
+                                : { color: 'rgba(255,255,255,0.4)' }
                             }
                         >
                             {opt === 'Popular' && <TrendingUp className="h-4 w-4" />}
@@ -671,56 +974,81 @@ export default function CoursesClient({ courses, fetchError }) {
                 </div>
             </section>
 
-            {/* ── Course Grid ─────────────────────────────────────────────── */}
-            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+            {/* ── 3D Course Grid ────────────────────────────────────────────── */}
+            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
 
                 {/* Results count */}
                 {!loading && (
-                    <p className="text-sm text-white/40 mb-6">
-                        {filtered.length === 0
-                            ? 'No courses match your filters.'
-                            : `${filtered.length} course${filtered.length !== 1 ? 's' : ''} found${category !== 'All' ? ` in ${category}` : ''}${search ? ` for "${search}"` : ''}`
-                        }
-                    </p>
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm border border-white/8"
+                            style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(12px)' }}>
+                            <Layers className="h-4 w-4 text-indigo-400" />
+                            <span className="text-white/40">
+                                {filtered.length === 0
+                                    ? 'No courses match your filters.'
+                                    : `${filtered.length} course${filtered.length !== 1 ? 's' : ''} found${category !== 'All' ? ` in ${category}` : ''}${search ? ` for "${search}"` : ''}`
+                                }
+                            </span>
+                        </div>
+                    </div>
                 )}
 
                 {/* Error state */}
                 {fetchError && (
-                    <div className="mb-6 p-4 rounded-2xl text-sm border"
-                        style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', color: '#fca5a5' }}>
+                    <div className="mb-8 p-5 rounded-2xl text-sm border"
+                        style={{
+                            background: 'rgba(239,68,68,0.08)',
+                            borderColor: 'rgba(239,68,68,0.25)',
+                            color: '#fca5a5',
+                            boxShadow: '0 4px 20px rgba(239,68,68,0.1)',
+                        }}>
                         ⚠️ {fetchError}
                     </div>
                 )}
 
-                {/* Skeleton grid */}
+                {/* 3D Skeleton grid */}
                 {loading && (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" style={{ perspective: '1200px' }}>
+                        {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} index={i} />)}
                     </div>
                 )}
 
                 {/* Empty state */}
                 {!loading && filtered.length === 0 && !fetchError && (
-                    <div className="text-center py-24">
-                        <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
-                            <BookOpen className="h-10 w-10 text-white/20" />
+                    <div className="text-center py-28" style={{ perspective: '800px' }}>
+                        <div
+                            className="w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/10"
+                            style={{
+                                background: 'rgba(255,255,255,0.03)',
+                                backdropFilter: 'blur(20px)',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)',
+                                transform: 'perspective(800px) rotateX(5deg)',
+                                animation: 'float-3d 6s ease-in-out infinite',
+                                transformStyle: 'preserve-3d',
+                            }}
+                        >
+                            <BookOpen className="h-12 w-12 text-white/15" />
                         </div>
-                        <h2 className="text-xl font-semibold text-white/60 mb-2">No courses found</h2>
-                        <p className="text-white/30 mb-6">Try adjusting your search or filters</p>
+                        <h2 className="text-xl font-semibold text-white/50 mb-3">No courses found</h2>
+                        <p className="text-white/25 mb-8">Try adjusting your search or filters</p>
                         <button
                             onClick={() => { setSearch(''); setCategory('All'); }}
-                            className="px-6 py-2 rounded-xl text-sm font-medium text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/20 transition-all"
+                            className="px-8 py-3 rounded-xl text-sm font-medium text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/15 transition-all duration-300"
+                            style={{ boxShadow: '0 4px 15px rgba(99,102,241,0.15)' }}
                         >
                             Clear filters
                         </button>
                     </div>
                 )}
 
-                {/* Course cards */}
+                {/* 3D Course Cards Grid */}
                 {!loading && filtered.length > 0 && (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {filtered.map(course => (
-                            <CourseCard key={course.id} course={course} />
+                    <div
+                        className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
+                        style={{ perspective: '1200px' }}
+                    >
+                        {filtered.map((course, index) => (
+                            <CourseCard3D key={course.id} course={course} index={index} />
                         ))}
                     </div>
                 )}
