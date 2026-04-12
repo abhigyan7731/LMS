@@ -802,53 +802,274 @@ export default async function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════
-          FOOTER — Dark 3D
+          FOOTER — Immersive 3D Holographic
       ══════════════════════════════════════ */}
-      <footer className="border-t border-white/[0.04] py-16 relative overflow-hidden">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-violet-500/[0.03] blur-[80px] pointer-events-none" />
+      <footer className="relative overflow-hidden" style={{ perspective: '1200px' }}>
+        {/* ── Top divider — animated gradient line ── */}
+        <div className="relative h-px w-full">
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.4) 20%, rgba(6,182,212,0.3) 40%, rgba(236,72,153,0.3) 60%, rgba(139,92,246,0.4) 80%, transparent 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'border-gradient-shift 6s ease infinite',
+          }} />
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.2) 20%, rgba(6,182,212,0.15) 50%, rgba(139,92,246,0.2) 80%, transparent 100%)',
+            filter: 'blur(4px)',
+          }} />
+        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            {/* Brand */}
-            <div>
-              <Link href="/" className="flex items-center gap-2.5 font-bold text-lg mb-4 group">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-all">
-                  <GraduationCap className="h-5 w-5 text-white" />
+        {/* ── Background effects ── */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Perspective grid floor */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '80px 80px',
+            transform: 'perspective(400px) rotateX(45deg)',
+            transformOrigin: 'center bottom',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 40%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 40%)',
+          }} />
+
+          {/* Floating glow orbs */}
+          <div className="absolute bottom-[-20%] left-[10%] w-[400px] h-[400px] rounded-full opacity-[0.06]"
+            style={{ background: 'radial-gradient(circle, rgba(139,92,246,1), transparent 70%)', animation: 'float-3d 10s ease-in-out infinite' }} />
+          <div className="absolute bottom-[-10%] right-[15%] w-[350px] h-[350px] rounded-full opacity-[0.05]"
+            style={{ background: 'radial-gradient(circle, rgba(6,182,212,1), transparent 70%)', animation: 'float-3d-delayed 12s ease-in-out infinite' }} />
+          <div className="absolute top-[20%] left-[50%] w-[300px] h-[300px] rounded-full opacity-[0.04]"
+            style={{ background: 'radial-gradient(circle, rgba(236,72,153,1), transparent 70%)', animation: 'float-3d 8s ease-in-out infinite 2s' }} />
+
+          {/* Floating particles */}
+          {Array.from({ length: 12 }, (_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full particle-float"
+              style={{
+                left: `${(i * 23 + 8) % 100}%`,
+                top: `${(i * 37 + 15) % 100}%`,
+                width: (i % 3) + 1.5,
+                height: (i % 3) + 1.5,
+                backgroundColor: i % 3 === 0 ? 'rgba(139,92,246,0.4)' : i % 3 === 1 ? 'rgba(6,182,212,0.35)' : 'rgba(236,72,153,0.3)',
+                animationDelay: `${(i * 0.8) % 6}s`,
+                animationDuration: `${7 + (i % 5)}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* ── Footer content ── */}
+        <div className="relative z-10 pt-20 pb-10 max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+
+            {/* ── Brand Column — 3D Glass Card ── */}
+            <div className="relative">
+              {/* Glassmorphic card wrapper */}
+              <div className="rounded-2xl p-6 -m-2 relative overflow-hidden" style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)',
+              }}>
+                {/* Holo shimmer */}
+                <div className="absolute inset-0 holo-shimmer pointer-events-none rounded-2xl" />
+
+                {/* Logo with mini 3D cube */}
+                <Link href="/" className="flex items-center gap-3 font-bold text-lg mb-5 group">
+                  <div className="relative">
+                    <div className="cube-logo-wrapper" style={{ width: '36px', height: '36px' }}>
+                      <div className="cube-logo" style={{ width: '36px', height: '36px' }}>
+                        <div className="cube-face cube-face-front" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'translateZ(18px)' }}>
+                          <GraduationCap className="h-4.5 w-4.5 text-white" style={{ filter: 'drop-shadow(0 0 4px rgba(255,255,255,0.4))' }} />
+                        </div>
+                        <div className="cube-face cube-face-back" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'rotateY(180deg) translateZ(18px)' }}>
+                          <BookMarked className="h-4 w-4 text-white/90" />
+                        </div>
+                        <div className="cube-face cube-face-right" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'rotateY(90deg) translateZ(18px)' }}>
+                          <Sparkles className="h-4 w-4 text-white/90" />
+                        </div>
+                        <div className="cube-face cube-face-left" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'rotateY(-90deg) translateZ(18px)' }}>
+                          <Brain className="h-4 w-4 text-white/90" />
+                        </div>
+                        <div className="cube-face cube-face-top" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'rotateX(90deg) translateZ(18px)' }}>
+                          <Rocket className="h-4 w-4 text-white/90" />
+                        </div>
+                        <div className="cube-face cube-face-bottom" style={{ width: '36px', height: '36px', borderRadius: '8px', transform: 'rotateX(-90deg) translateZ(18px)' }}>
+                          <Code2 className="h-4 w-4 text-white/80" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="cube-shadow" style={{ width: '24px' }} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent font-extrabold tracking-tight" style={{ filter: 'drop-shadow(0 0 10px rgba(139,92,246,0.3))' }}>
+                      LearnHub
+                    </span>
+                    <span className="text-[8px] text-white/25 -mt-0.5 tracking-[0.2em] uppercase font-semibold flex items-center gap-1">
+                      <span className="w-1 h-1 rounded-full bg-violet-500 animate-pulse" />
+                      AI Learning Platform
+                    </span>
+                  </div>
+                </Link>
+
+                <p className="text-sm text-white/30 leading-relaxed mb-6">
+                  AI-powered learning management for the modern learner and instructor.
+                </p>
+
+                {/* Social links — 3D press buttons */}
+                <div className="flex gap-2.5">
+                  {[
+                    { Icon: Twitter, glow: 'rgba(59,130,246,0.4)', hoverBg: 'rgba(59,130,246,0.15)', hoverBorder: 'rgba(59,130,246,0.3)' },
+                    { Icon: Github, glow: 'rgba(255,255,255,0.3)', hoverBg: 'rgba(255,255,255,0.08)', hoverBorder: 'rgba(255,255,255,0.2)' },
+                    { Icon: Linkedin, glow: 'rgba(59,130,246,0.4)', hoverBg: 'rgba(59,130,246,0.15)', hoverBorder: 'rgba(59,130,246,0.3)' },
+                  ].map(({ Icon, glow, hoverBg, hoverBorder }, i) => (
+                    <a
+                      key={i}
+                      href="#"
+                      className="btn-3d flex h-10 w-10 items-center justify-center rounded-xl text-white/30 hover:text-white transition-all duration-300 group"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      <Icon className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                    </a>
+                  ))}
                 </div>
-                <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">LearnHub</span>
-              </Link>
-              <p className="text-sm text-white/25 leading-relaxed mb-5">
-                AI-powered learning management for the modern learner and instructor.
-              </p>
-              <div className="flex gap-3">
-                {[Twitter, Github, Linkedin].map((Icon, i) => (
-                  <a key={i} href="#" className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.02] text-white/30 hover:text-violet-400 hover:border-violet-500/30 hover:bg-violet-500/10 transition-all duration-300">
-                    <Icon className="h-4 w-4" />
-                  </a>
-                ))}
               </div>
             </div>
 
-            {['Product', 'Resources', 'Legal'].map((section, si) => (
-              <div key={section}>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-4">{section}</h4>
-                <ul className="space-y-2.5">
-                  {(si === 0 ? ['Features', 'Pricing', 'Changelog', 'Roadmap']
-                    : si === 1 ? ['Docs', 'Blog', 'Tutorials', 'Support']
-                    : ['Privacy Policy', 'Terms of Service', 'Cookie Policy']
-                  ).map(l => (
-                    <li key={l}><a href="#" className="text-sm text-white/25 hover:text-violet-400 transition-all duration-200 hover:translate-x-1 inline-block">{l}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            {/* ── Link Columns — 3D Hover Links ── */}
+            {[
+              { title: 'Product', icon: Layers, links: ['Features', 'Pricing', 'Changelog', 'Roadmap'], color: 'violet' },
+              { title: 'Resources', icon: BookOpen, links: ['Docs', 'Blog', 'Tutorials', 'Support'], color: 'cyan' },
+              { title: 'Legal', icon: Shield, links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy'], color: 'pink' },
+            ].map(({ title, icon: SectionIcon, links, color }) => {
+              const colorMap = {
+                violet: { accent: 'rgba(139,92,246,', text: 'text-violet-400', border: 'border-violet-500/20', bg: 'bg-violet-500/10' },
+                cyan: { accent: 'rgba(6,182,212,', text: 'text-cyan-400', border: 'border-cyan-500/20', bg: 'bg-cyan-500/10' },
+                pink: { accent: 'rgba(236,72,153,', text: 'text-pink-400', border: 'border-pink-500/20', bg: 'bg-pink-500/10' },
+              };
+              const c = colorMap[color];
+              return (
+                <div key={title}>
+                  {/* Section header with icon */}
+                  <div className="flex items-center gap-2.5 mb-5">
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${c.bg} border ${c.border}`}
+                      style={{ boxShadow: `0 0 12px ${c.accent}0.15)` }}>
+                      <SectionIcon className={`h-3.5 w-3.5 ${c.text}`} />
+                    </div>
+                    <h4 className={`text-xs font-bold uppercase tracking-[0.2em] ${c.text}`}>
+                      {title}
+                    </h4>
+                  </div>
+
+                  {/* Links with 3D hover */}
+                  <ul className="space-y-1">
+                    {links.map((l, li) => (
+                      <li key={l}>
+                        <a
+                          href="#"
+                          className="group flex items-center gap-2 text-sm text-white/30 hover:text-white py-2 px-3 -mx-3 rounded-xl hover:bg-white/[0.04] transition-all duration-300"
+                          style={{
+                            transformStyle: 'preserve-3d',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          }}
+                        >
+                          {/* Animated dash indicator */}
+                          <span
+                            className="w-0 group-hover:w-4 h-px transition-all duration-300 flex-shrink-0"
+                            style={{ background: `${c.accent}0.6)`, boxShadow: `0 0 6px ${c.accent}0.3)` }}
+                          />
+                          <span className="group-hover:translate-x-0.5 transition-transform duration-300">
+                            {l}
+                          </span>
+                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-40 -ml-1 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="border-t border-white/[0.04] pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/20">
-            <span>© 2026 LearnHub. All rights reserved.</span>
-            <span className="flex items-center gap-1">
-              Built with <span className="text-rose-500 mx-0.5">♥</span> for learners everywhere.
+          {/* ── Newsletter CTA — Glassmorphic ── */}
+          <div className="relative rounded-2xl p-8 mb-12 overflow-hidden" style={{
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(139,92,246,0.15)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 40px rgba(139,92,246,0.04)',
+            backdropFilter: 'blur(20px)',
+          }}>
+            <div className="absolute inset-0 holo-shimmer pointer-events-none rounded-2xl" />
+            <div className="absolute inset-0 pointer-events-none rounded-2xl" style={{
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.05) 0%, transparent 50%, rgba(6,182,212,0.03) 100%)',
+            }} />
+
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 shadow-lg depth-breathe"
+                  style={{ boxShadow: '0 0 25px rgba(139,92,246,0.3), 0 8px 20px rgba(0,0,0,0.3)' }}>
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white mb-0.5">Stay in the loop</h3>
+                  <p className="text-sm text-white/30">Get the latest updates on new courses, features, and AI tools.</p>
+                </div>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  className="flex-1 sm:w-56 px-4 py-3 rounded-xl text-sm text-white placeholder:text-white/20 outline-none transition-all duration-300"
+                  style={{
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                />
+                <button className="btn-3d flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 shadow-lg transition-all"
+                  style={{ boxShadow: '0 4px 20px rgba(139,92,246,0.3)' }}>
+                  Subscribe
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Bottom bar — 3D floating ── */}
+          <div className="relative rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4" style={{
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}>
+            {/* Subtle top glow line */}
+            <div className="absolute top-0 left-[10%] right-[10%] h-px pointer-events-none" style={{
+              background: 'linear-gradient(90deg, transparent, rgba(139,92,246,0.2), rgba(6,182,212,0.15), rgba(139,92,246,0.2), transparent)',
+            }} />
+
+            <span className="text-xs text-white/25 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              © 2026 LearnHub. All rights reserved.
             </span>
+
+            <div className="flex items-center gap-4 text-xs text-white/20">
+              <span className="flex items-center gap-1.5">
+                Built with
+                <span className="relative inline-block">
+                  <span className="text-rose-400 text-sm" style={{ filter: 'drop-shadow(0 0 6px rgba(244,63,94,0.5))' }}>♥</span>
+                </span>
+                for learners everywhere.
+              </span>
+              <span className="text-white/10">|</span>
+              <span className="flex items-center gap-1">
+                <Zap className="h-3 w-3 text-violet-400" />
+                <span className="text-violet-400/60 font-medium">Powered by AI</span>
+              </span>
+            </div>
           </div>
         </div>
       </footer>
