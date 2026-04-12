@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth } from '@clerk/nextjs/server';
 import AuthButtons from './auth-buttons';
+import UpgradeProButton from '@/components/upgrade-pro-button';
 import {
   Sparkles, BookOpen, GraduationCap, Zap, BarChart3, Users,
   Star, ArrowRight, Play, CheckCircle, ChevronRight,
@@ -739,13 +740,7 @@ export default async function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Link
-                  href="/sign-up"
-                  className="btn-3d flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-violet-700 hover:bg-violet-50 transition-all shadow-depth-2"
-                >
-                  Upgrade to Pro
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
+                <UpgradeProButton userId={userId} />
               </div>
             </div>
           </div>
