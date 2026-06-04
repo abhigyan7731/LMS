@@ -259,5 +259,5 @@ This project is for educational purposes. See [LICENSE](LICENSE) for details.
 
 <p align="center">
   Built with ❤️ for learners everywhere<br/>
-  <strong>⚡ Powered by AI</strong>
+  <strong>⚡ Powered by Abhigyan</strong>
 </p>
