@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Send, Bot, X, MessageSquare, Sparkles, Users } from 'lucide-react';
 const MentorAvatar = dynamic(() => import('@/components/3d/mentor-avatar'), { ssr: false });
 import GhostPresence from './ghost-presence';
-import { Button } from '@/components/ui/button'; 
+import { Button } from '@/components/ui/button';
 
 interface VideoPlayerProps {
   playbackId: string | null;
@@ -128,12 +128,12 @@ export function VideoPlayer({
               type="application/x-mpegURL"
             />
           </video>
-          
+
           {/* Ghost Presence Overlay */}
           <div className="absolute top-4 right-4 z-20">
             <GhostPresence channelId={chapterId} userName="Student" />
           </div>
-          
+
           {/* AI Mentor Toggle Button */}
           {!isMentorOpen && (
             <button
@@ -175,11 +175,10 @@ export function VideoPlayer({
             )}
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
-                  m.role === 'user' 
-                    ? 'bg-blue-600 text-white rounded-br-none' 
+                <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${m.role === 'user'
+                    ? 'bg-blue-600 text-white rounded-br-none'
                     : 'bg-white/10 text-white/90 rounded-bl-none border border-white/10'
-                }`}>
+                  }`}>
                   {m.content}
                 </div>
               </div>
@@ -208,7 +207,7 @@ export function VideoPlayer({
                 placeholder="Ask your mentor..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-violet-500/50 transition-all text-white placeholder:text-white/20"
               />
-              <button 
+              <button
                 onClick={handleSendMessage}
                 disabled={isLoading}
                 className="p-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white rounded-xl shadow-lg transition-all btn-3d"

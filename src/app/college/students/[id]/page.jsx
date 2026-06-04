@@ -1,8 +1,10 @@
-export default function StudentDetailPage() {
+export default function StudentDetailPage({ params }) {
   return (
-    <div className="p-6 text-white bg-[#06060f] min-h-screen">
+    <div className="p-6">
       <h1 className="text-2xl font-bold">Student Profile</h1>
-      <p className="text-white/40 mt-2">Student profile details are under construction...</p>
+      <p className="text-muted-foreground mt-2">
+        Viewing student: {params.id}
+      </p>
     </div>
   );
 }
