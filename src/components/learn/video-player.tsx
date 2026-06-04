@@ -6,7 +6,6 @@ import { Send, Bot, X, MessageSquare, Sparkles, Users } from 'lucide-react';
 const MentorAvatar = dynamic(() => import('@/components/3d/mentor-avatar'), { ssr: false });
 import GhostPresence from './ghost-presence';
 import { Button } from '@/components/ui/button'; 
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface VideoPlayerProps {
   playbackId: string | null;
