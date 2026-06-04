@@ -1,56 +1,174 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { generateLocalQuiz } from '@/lib/quiz-bank'
 
 /**
- * Open Trivia Database (opentdb.com) — FREE, no API key needed.
- * Category IDs we use:
- *   18 = Science: Computers
- *   19 = Science: Mathematics
- *   17 = Science & Nature
- *   9  = General Knowledge
- *   30 = Science: Gadgets
- *   22 = Geography
- *   23 = History
- *   25 = Art
+ * Skill Assessment Quiz Generator
+ * 
+ * Priority order:
+ *   1. Google Gemini API (free tier — 15 RPM, 1500 RPD)
+ *   2. OpenAI API (if configured)
+ *   3. Local question bank (always works, no API needed)
  */
-const CATEGORY_MAP = {
-  'Web Development': 18,
-  'AI & Machine Learning': 18,
-  'Data Science': 19,
-  'Mobile Development': 18,
-  'DevOps & Cloud': 18,
-  'Cybersecurity': 18,
-  'Data Structures & Algorithms': 19,
-  'UI/UX Design': 25,
-  'Database Engineering': 18,
-  'Programming Fundamentals': 18,
-  'Science & Nature': 17,
-  'General Knowledge': 9,
-  'Mathematics': 19,
-  'History': 23,
-  'Geography': 22,
-  'Gadgets & Technology': 30,
+
+async function generateWithGemini(focusArea, topic, subtopic) {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey || apiKey === 'xxx') return null
+
+  try {
+    const { GoogleGenerativeAI } = await import('@google/generative-ai')
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+
+    const prompt = `Generate exactly 10 multiple-choice quiz questions to assess a student's knowledge of "${focusArea}".
+
+RULES:
+- 4 "beginner" questions, 3 "intermediate" questions, 3 "advanced" questions
+- Each question has exactly 4 options, ONE correct
+- Questions should test real, practical knowledge
+- For tech topics, include real-world scenarios
+- Make wrong answers plausible
+
+Return ONLY valid JSON (no markdown, no code blocks):
+{
+  "questions": [
+    {
+      "question": "string",
+      "difficulty": "beginner" | "intermediate" | "advanced",
+      "category": "sub-category string",
+      "options": [
+        { "id": "a", "text": "string", "isCorrect": true/false },
+        { "id": "b", "text": "string", "isCorrect": false/true },
+        { "id": "c", "text": "string", "isCorrect": false/true },
+        { "id": "d", "text": "string", "isCorrect": false/true }
+      ]
+    }
+  ]
+}`
+
+    const result = await model.generateContent(prompt)
+    const text = result.response.text()
+
+    // Clean markdown code blocks if present
+    const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim()
+    const parsed = JSON.parse(cleaned)
+    const rawQuestions = parsed.questions || []
+
+    if (rawQuestions.length === 0) return null
+
+    // Normalize questions
+    const questions = rawQuestions.slice(0, 10).map((q, idx) => {
+      const options = (q.options || []).map((o, i) => ({
+        id: String.fromCharCode(97 + i),
+        text: o.text,
+        isCorrect: o.isCorrect === true,
+      }))
+
+      // Ensure exactly one correct answer
+      const correctCount = options.filter((o) => o.isCorrect).length
+      if (correctCount === 0 && options.length > 0) {
+        options[0].isCorrect = true
+      } else if (correctCount > 1) {
+        let foundFirst = false
+        for (const opt of options) {
+          if (opt.isCorrect) {
+            if (foundFirst) opt.isCorrect = false
+            foundFirst = true
+          }
+        }
+      }
+
+      return {
+        id: `q${idx + 1}`,
+        question: q.question,
+        difficulty: ['beginner', 'intermediate', 'advanced'].includes(q.difficulty)
+          ? q.difficulty
+          : idx < 4 ? 'beginner' : idx < 7 ? 'intermediate' : 'advanced',
+        category: q.category || topic,
+        options,
+      }
+    })
+
+    return {
+      quiz_title: `${subtopic || topic} Assessment`,
+      quiz_description: `Test your ${subtopic || topic} knowledge with AI-generated questions`,
+      questions,
+    }
+  } catch (e) {
+    console.warn('[skill-quiz] Gemini failed:', e.message)
+    return null
+  }
 }
 
-// Decode HTML entities from OpenTDB responses
-function decodeHTML(html) {
-  const entities = {
-    '&amp;': '&', '&lt;': '<', '&gt;': '>',
-    '&quot;': '"', '&#039;': "'", '&eacute;': 'é',
-    '&ouml;': 'ö', '&uuml;': 'ü', '&aacute;': 'á',
-    '&iacute;': 'í', '&ntilde;': 'ñ', '&Eacute;': 'É',
-    '&lrm;': '', '&rlm;': '', '&shy;': '',
-  }
-  return html.replace(/&[\w#]+;/g, (m) => entities[m] || m)
-}
+async function generateWithOpenAI(focusArea, topic, subtopic) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey || apiKey === 'sk-xxx') return null
 
-function shuffleArray(arr) {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+  try {
+    const OpenAI = (await import('openai')).default
+    const openai = new OpenAI({ apiKey })
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `Generate exactly 10 multiple-choice questions to assess a student's knowledge.
+Create 4 "beginner", 3 "intermediate", 3 "advanced" questions.
+Each question has exactly 4 options with ONE correct.
+Respond with valid JSON only:
+{
+  "questions": [
+    {
+      "question": "string",
+      "difficulty": "beginner"|"intermediate"|"advanced",
+      "category": "string",
+      "options": [
+        { "id": "a", "text": "string", "isCorrect": true/false },
+        { "id": "b", "text": "string", "isCorrect": true/false },
+        { "id": "c", "text": "string", "isCorrect": true/false },
+        { "id": "d", "text": "string", "isCorrect": true/false }
+      ]
+    }
+  ]
+}`,
+        },
+        { role: 'user', content: `Generate a 10-question assessment quiz for: ${focusArea}` },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.8,
+    })
+
+    const text = completion.choices[0]?.message?.content
+    if (!text) return null
+
+    const parsed = JSON.parse(text)
+    const rawQuestions = parsed.questions || []
+    if (rawQuestions.length === 0) return null
+
+    const questions = rawQuestions.slice(0, 10).map((q, idx) => ({
+      id: `q${idx + 1}`,
+      question: q.question,
+      difficulty: ['beginner', 'intermediate', 'advanced'].includes(q.difficulty)
+        ? q.difficulty
+        : idx < 4 ? 'beginner' : idx < 7 ? 'intermediate' : 'advanced',
+      category: q.category || topic,
+      options: (q.options || []).map((o, i) => ({
+        id: String.fromCharCode(97 + i),
+        text: o.text,
+        isCorrect: o.isCorrect === true,
+      })),
+    }))
+
+    return {
+      quiz_title: `${subtopic || topic} Assessment`,
+      quiz_description: `Test your ${subtopic || topic} knowledge with AI-generated questions`,
+      questions,
+    }
+  } catch (e) {
+    console.warn('[skill-quiz] OpenAI failed:', e.message)
+    return null
   }
-  return a
 }
 
 export async function POST(request) {
@@ -58,87 +176,25 @@ export async function POST(request) {
     const { userId } = await auth()
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { topic } = await request.json()
+    const { topic, subtopic } = await request.json()
     if (!topic) return NextResponse.json({ error: 'Topic is required' }, { status: 400 })
 
-    // Find the best matching OpenTDB category
-    const categoryId = CATEGORY_MAP[topic] || CATEGORY_MAP['General Knowledge'] || 9
+    const focusArea = subtopic ? `${topic} — specifically ${subtopic}` : topic
 
-    // Fetch questions from OpenTDB — 10 questions, multiple choice
-    // Mix difficulties: 4 easy, 3 medium, 3 hard
-    const fetchQuestions = async (difficulty, amount) => {
-      const url = `https://opentdb.com/api.php?amount=${amount}&category=${categoryId}&difficulty=${difficulty}&type=multiple`
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`OpenTDB API error: ${res.status}`)
-      const data = await res.json()
-      if (data.response_code !== 0) {
-        // Fallback: try without category filter
-        const fallbackUrl = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=multiple`
-        const fallbackRes = await fetch(fallbackUrl)
-        const fallbackData = await fallbackRes.json()
-        return fallbackData.results || []
-      }
-      return data.results || []
+    // Try AI providers first, then fall back to local
+    let result = await generateWithGemini(focusArea, topic, subtopic)
+
+    if (!result) {
+      result = await generateWithOpenAI(focusArea, topic, subtopic)
     }
 
-    // Fetch different difficulties
-    let allQuestions = []
-    try {
-      const [easy, medium, hard] = await Promise.all([
-        fetchQuestions('easy', 4),
-        fetchQuestions('medium', 3),
-        fetchQuestions('hard', 3),
-      ])
-      allQuestions = [...easy, ...medium, ...hard]
-    } catch (e) {
-      // If parallel fails (rate limit), try sequential with single request
-      const url = `https://opentdb.com/api.php?amount=10&category=${categoryId}&type=multiple`
-      const res = await fetch(url)
-      const data = await res.json()
-      allQuestions = data.results || []
+    if (!result) {
+      // Local question bank — always works, no API needed
+      console.log('[skill-quiz] Using local question bank (no API key configured)')
+      result = generateLocalQuiz(topic, subtopic)
     }
 
-    if (allQuestions.length === 0) {
-      // Last resort: fetch without category
-      const url = `https://opentdb.com/api.php?amount=10&type=multiple`
-      const res = await fetch(url)
-      const data = await res.json()
-      allQuestions = data.results || []
-    }
-
-    // Transform OpenTDB format → our quiz format
-    const difficultyMap = { easy: 'beginner', medium: 'intermediate', hard: 'advanced' }
-
-    const questions = allQuestions.slice(0, 10).map((q, idx) => {
-      const correctAnswer = decodeHTML(q.correct_answer)
-      const incorrectAnswers = q.incorrect_answers.map(decodeHTML)
-      const allOptions = shuffleArray([
-        { id: 'correct', text: correctAnswer, isCorrect: true },
-        ...incorrectAnswers.map((text, i) => ({ id: `wrong_${i}`, text, isCorrect: false })),
-      ]).map((opt, i) => ({ ...opt, id: String.fromCharCode(97 + i) }))
-
-      // Reassign isCorrect after shuffling and re-id'ing
-      const correctText = correctAnswer
-      const options = allOptions.map((opt) => ({
-        id: opt.id,
-        text: opt.text,
-        isCorrect: opt.text === correctText,
-      }))
-
-      return {
-        id: `q${idx + 1}`,
-        question: decodeHTML(q.question),
-        difficulty: difficultyMap[q.difficulty] || 'intermediate',
-        category: decodeHTML(q.category),
-        options,
-      }
-    })
-
-    return NextResponse.json({
-      quiz_title: `${topic} Assessment`,
-      quiz_description: `Test your ${topic} knowledge with questions from the internet`,
-      questions,
-    })
+    return NextResponse.json(result)
   } catch (e) {
     console.error('[skill-quiz] Error:', e)
     return NextResponse.json(

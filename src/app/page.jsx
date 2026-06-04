@@ -327,7 +327,7 @@ export default async function HomePage() {
             </nav>
 
             {/* Auth */}
-            <div className="relative z-10" style={{ transform: 'translateZ(5px)' }}>
+            <div className="static md:relative z-10 md:[transform:translateZ(5px)]">
               <AuthButtons userId={userId} />
             </div>
           </div>
@@ -368,7 +368,7 @@ export default async function HomePage() {
               {/* CTAs — 3D buttons */}
               <div className="flex flex-wrap gap-4 mb-10 tilt-in" style={{ animationDelay: '0.4s' }}>
                 <Link
-                  href={userId ? '/dashboard' : '/sign-up'}
+                  href="/dashboard"
                   className="btn-3d group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 px-7 py-4 text-sm font-bold text-white shadow-xl shadow-violet-500/30 hover:shadow-violet-500/50 transition-all"
                 >
                   <Rocket className="h-4 w-4 group-hover:rotate-12 transition-transform" />

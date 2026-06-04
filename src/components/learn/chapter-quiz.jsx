@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { HelpCircle } from 'lucide-react'
+import { HelpCircle, AlertTriangle, Loader2 } from 'lucide-react'
 
 export function ChapterQuiz({ chapterId, transcript, enrollmentId }) {
   const [quiz, setQuiz] = useState(null)
@@ -12,16 +12,28 @@ export function ChapterQuiz({ chapterId, transcript, enrollmentId }) {
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [score, setScore] = useState(null)
+  const [error, setError] = useState(null)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   useEffect(() => {
+    setInitialLoading(true)
+    setError(null)
+    setQuiz(null)
+    setSubmitted(false)
+    setScore(null)
+    setAnswers({})
     fetch(`/api/quizzes?chapter_id=${chapterId}`)
       .then((r) => r.json())
-      .then((d) => setQuiz(d.questions ?? null))
+      .then((d) => {
+        setQuiz(d.questions ?? null)
+      })
       .catch(() => setQuiz(null))
+      .finally(() => setInitialLoading(false))
   }, [chapterId])
 
   const generateQuiz = async () => {
     setGenerating(true)
+    setError(null)
     try {
       const res = await fetch('/api/ai/generate-quiz', {
         method: 'POST',
@@ -29,7 +41,16 @@ export function ChapterQuiz({ chapterId, transcript, enrollmentId }) {
         body: JSON.stringify({ chapter_id: chapterId, transcript }),
       })
       const data = await res.json()
-      if (res.ok) setQuiz(data.questions ?? [])
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to generate quiz')
+      }
+      if (data.questions && data.questions.length > 0) {
+        setQuiz(data.questions)
+      } else {
+        throw new Error('No questions were generated. Please try again.')
+      }
+    } catch (e) {
+      setError(e.message || 'Failed to generate quiz. Please try again.')
     } finally {
       setGenerating(false)
     }
@@ -52,6 +73,17 @@ export function ChapterQuiz({ chapterId, transcript, enrollmentId }) {
     }
   }
 
+  if (initialLoading) {
+    return (
+      <Card glass>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mr-2" />
+          <span className="text-muted-foreground">Loading quiz...</span>
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (!quiz) {
     return (
       <Card glass>
@@ -60,11 +92,24 @@ export function ChapterQuiz({ chapterId, transcript, enrollmentId }) {
             <HelpCircle className="h-5 w-5" />
             Chapter Quiz
           </CardTitle>
-          <p className="text-sm text-muted-foreground">No quiz yet. Generate one from the chapter transcript using AI.</p>
+          <p className="text-sm text-muted-foreground">No quiz yet. Generate one using AI based on the chapter content.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          {error && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
           <Button onClick={generateQuiz} disabled={generating}>
-            {generating ? 'Generating...' : 'Generate Quiz with AI'}
+            {generating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              'Generate Quiz with AI'
+            )}
           </Button>
         </CardContent>
       </Card>

@@ -1,19 +1,26 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Check, ChevronDown, MessageCircle, BookOpen, Trophy, HelpCircle } from 'lucide-react'
+import { Check, ChevronDown, MessageCircle, BookOpen, Trophy, HelpCircle, X } from 'lucide-react'
 import { VideoPlayer } from './video-player'
 import { ChapterDiscussions } from './chapter-discussions'
 import { AIStudyAssistant } from './ai-study-assistant'
 import { ChapterQuiz } from './chapter-quiz'
+import { cn } from '@/lib/utils'
 
 export function LearnView({ course, chapters, enrollmentId, progressMap, isEnrolled, profileId }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [currentChapter, setCurrentChapter] = useState(chapters[0] ?? null)
   const [activeTab, setActiveTab] = useState('discussion') // 'discussion' | 'quiz' | 'assistant'
+
+  useEffect(() => {
+    if (window.innerWidth >= 768) {
+      setSidebarOpen(true)
+    }
+  }, [])
 
   const currentProgress = currentChapter ? progressMap[currentChapter.id] : false
 
@@ -43,20 +50,49 @@ export function LearnView({ course, chapters, enrollmentId, progressMap, isEnrol
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <aside
-        className={`${sidebarOpen ? 'w-80' : 'w-0'} border-r bg-card/50 backdrop-blur-sm flex-shrink-0 overflow-hidden transition-all`}
+        className={cn(
+          "border-r bg-card/50 backdrop-blur-sm flex-shrink-0 overflow-hidden transition-all duration-300 z-50",
+          "fixed inset-y-0 left-0 md:relative md:translate-x-0",
+          sidebarOpen 
+            ? "w-80 translate-x-0" 
+            : "w-0 -translate-x-full md:translate-x-0"
+        )}
       >
         <div className="p-4 h-full overflow-y-auto">
-          <h2 className="font-semibold mb-1 flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            {course.title}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold flex items-center gap-2 truncate">
+              <BookOpen className="h-5 w-5 flex-shrink-0" />
+              <span className="truncate">{course.title}</span>
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden flex-shrink-0"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
           <p className="text-xs text-muted-foreground mb-4">Video lectures</p>
           <nav className="space-y-1">
             {chapters.map((ch) => (
               <button
                 key={ch.id}
-                onClick={() => setCurrentChapter(ch)}
+                onClick={() => {
+                  setCurrentChapter(ch);
+                  if (window.innerWidth < 768) {
+                    setSidebarOpen(false);
+                  }
+                }}
                 className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 transition-colors ${
                   currentChapter?.id === ch.id
                     ? 'bg-primary/10 text-primary font-medium'

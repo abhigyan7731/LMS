@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { SignOutButton } from '@clerk/nextjs';
+import { SignOutButton, useAuth } from '@clerk/nextjs';
 import { GraduationCap, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
-export default function AuthButtons({ userId }) {
+export default function AuthButtons({ userId: initialUserId }) {
+  const { userId } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -57,7 +58,7 @@ export default function AuthButtons({ userId }) {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="absolute top-full left-0 right-0 md:hidden glass-card border-t border-white/[0.06] p-4 space-y-3 z-50 animate-slide-up">
+        <div className="absolute top-full left-0 right-0 md:hidden bg-[#0a0a1a]/95 backdrop-blur-2xl border-t border-white/[0.06] p-4 space-y-3 z-[100] animate-slide-up shadow-2xl rounded-b-2xl">
           {['Features', 'How it works', 'Pricing', 'Testimonials'].map(link => (
             <a
               key={link}

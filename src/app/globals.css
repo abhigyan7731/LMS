@@ -614,7 +614,7 @@
 /* Animated border gradient for navbar */
 .navbar-3d {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .navbar-3d::before {

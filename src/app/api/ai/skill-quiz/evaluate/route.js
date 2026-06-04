@@ -170,6 +170,35 @@ export async function POST(request) {
       }
     }
 
+    // Phase 4: Adaptive Mastery - Generate remedial content if score is low
+    let remedialContent = null
+    if (scorePercent < 70) {
+      try {
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+        const remedialPrompt = `
+          The student failed the assessment on "${topic}" with a score of ${scorePercent}%.
+          Detected Weaknesses: ${weaknesses.join(', ')}.
+          
+          Generate a high-impact "Mastery Boost" lesson. 
+          Provide:
+          1. A catchy title.
+          2. A concise explanation of the core concept they missed (max 300 words).
+          3. A "Mental Model" or analogy to help them remember.
+          4. One practice challenge.
+          
+          Format as JSON: { "title": "...", "lesson": "...", "analogy": "...", "challenge": "..." }
+        `
+        const remedialCompletion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'system', content: 'You are an elite tutor.' }, { role: 'user', content: remedialPrompt }],
+          response_format: { type: 'json_object' }
+        })
+        remedialContent = JSON.parse(remedialCompletion.choices[0]?.message?.content || '{}')
+      } catch (remErr) {
+        console.error('Failed to generate remedial content:', remErr)
+      }
+    }
+
     return NextResponse.json({
       score: correctCount,
       totalQuestions,
@@ -184,6 +213,7 @@ export async function POST(request) {
       strengths,
       weaknesses,
       recommendedTopics,
+      remedialContent,
       recommendedCourses: finalCourses.map(({ matchScore, ...c }) => c),
     })
   } catch (e) {

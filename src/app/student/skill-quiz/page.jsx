@@ -173,7 +173,7 @@ export default function SkillQuizPage() {
                 Skill Assessment Quiz
               </h1>
               <p className="text-white/50 text-lg max-w-2xl mx-auto">
-                Test your knowledge with quiz questions from the internet. Get personalized course recommendations based on your performance.
+                Test your knowledge with AI-generated quiz questions. Get personalized course recommendations based on your performance.
               </p>
             </div>
 
@@ -289,10 +289,10 @@ export default function SkillQuizPage() {
             </div>
             <div className="text-center space-y-2">
               <h3 className="text-xl font-bold text-white">Generating Your Quiz...</h3>
-              <p className="text-white/40 text-sm">Fetching questions from the internet quiz database</p>
+              <p className="text-white/40 text-sm">AI is crafting personalized questions for you</p>
               <div className="flex items-center justify-center gap-2 text-violet-400 text-sm mt-4">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Loading {selectedTopic?.name} questions
+                Generating {selectedTopic?.name} questions
               </div>
             </div>
           </div>
@@ -522,6 +522,60 @@ export default function SkillQuizPage() {
                 </div>
               ))}
             </div>
+
+            {/* Phase 4: Adaptive Mastery Boost */}
+            {results.remedialContent && (
+              <div className="rounded-3xl border border-violet-500/30 bg-violet-600/5 p-6 sm:p-8 glass-card relative overflow-hidden tilt-in shadow-glow-violet mb-8" style={{ transformStyle: 'preserve-3d' }}>
+                <div className="absolute inset-0 holo-scanline opacity-20 pointer-events-none" />
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-500/20 blur-[100px] rounded-full" />
+                
+                <div className="relative z-10 space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg depth-breathe">
+                      <Zap className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white tracking-tight">Mastery Boost: {results.remedialContent.title}</h3>
+                      <p className="text-violet-400 text-sm font-medium uppercase tracking-widest">Adaptive Remedial Insight Activated</p>
+                    </div>
+                  </div>
+
+                  <div className="grid lg:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <h4 className="text-white font-semibold flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-violet-400" />
+                        Key Insight
+                      </h4>
+                      <div className="text-white/70 text-sm leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                        {results.remedialContent.lesson}
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <h4 className="text-white font-semibold flex items-center gap-2">
+                          <Brain className="w-4 h-4 text-cyan-400" />
+                          Mental Model
+                        </h4>
+                        <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20 italic text-cyan-100 text-sm">
+                          "{results.remedialContent.analogy}"
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="text-white font-semibold flex items-center gap-2">
+                          <Target className="w-4 h-4 text-amber-400" />
+                          Practice Challenge
+                        </h4>
+                        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-100 text-sm font-medium">
+                          {results.remedialContent.challenge}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Strengths & Weaknesses */}
             <div className="grid sm:grid-cols-2 gap-4">
